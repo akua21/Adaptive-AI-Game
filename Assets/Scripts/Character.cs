@@ -49,7 +49,7 @@ public class Character : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         float horizontalInput = Input.GetAxis("Horizontal");
         float verticalInput = Input.GetAxis("Vertical");
@@ -59,7 +59,7 @@ public class Character : MonoBehaviour
         // Normalize direction so diagonal movements are not faster
         movementDirection.Normalize();
 
-        transform.Translate(movementDirection * Speed * Time.deltaTime);
+        GetComponent<Rigidbody2D>().velocity = movementDirection * Speed * Time.deltaTime;
 
         _healthBar.UpdateHealthBar(HP, MaxHP);
 
