@@ -16,21 +16,36 @@ public class Character : MonoBehaviour
         }
     }
 
+    // Character max health
+    [SerializeField] private int _maxHp;
+    public int MaxHP {
+        get {
+            return _maxHp;
+        }
+        set {
+            _maxHp = value;
+        }
+    }
+
     // Character health
-    [SerializeField] private int _hp;
+    private int _hp;
     public int HP {
         get {
             return _hp;
         }
         set {
-            _hp = Mathf.Max(value, 0);
+            _hp = Mathf.Clamp(value, 0, MaxHP);
         }
     }
+
+    // Character health bar
+    [SerializeField] private HealthBar _healthBar;
+
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        HP = MaxHP;
     }
 
     // Update is called once per frame
@@ -45,6 +60,8 @@ public class Character : MonoBehaviour
         movementDirection.Normalize();
 
         GetComponent<Rigidbody2D>().velocity = movementDirection * Speed * Time.deltaTime;
+
+        _healthBar.UpdateHealthBar(HP, MaxHP);
 
     }
 
