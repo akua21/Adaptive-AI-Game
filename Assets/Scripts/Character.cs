@@ -2,11 +2,30 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerMovement : MonoBehaviour
+public class Character : MonoBehaviour
 {
 
-    // Player Speed
+    // Character Speed
     [SerializeField] private int _speed;
+    public int Speed {
+        get {
+            return _speed;
+        }
+        set {
+            _speed = value;
+        }
+    }
+
+    // Character health
+    [SerializeField] private int _hp;
+    public int HP {
+        get {
+            return _hp;
+        }
+        set {
+            _hp = Mathf.Max(value, 0);
+        }
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -25,9 +44,9 @@ public class PlayerMovement : MonoBehaviour
         // Normalize direction so diagonal movements are not faster
         movementDirection.Normalize();
 
-        transform.Translate(movementDirection * _speed * Time.deltaTime);
+        transform.Translate(movementDirection * Speed * Time.deltaTime);
 
-
+        Debug.Log(Speed);
     }
 
 }
