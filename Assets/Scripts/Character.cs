@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class Character : MonoBehaviour
 {
@@ -42,25 +43,51 @@ public class Character : MonoBehaviour
     [SerializeField] private HealthBar _healthBar;
 
 
+    // Character control inputs
+    [SerializeField] private PlayerControl controls;
+
+    // Character movement and rotation
+    private Vector2 _move;
+    private float _rotation;
+
+    private void Awake() {
+        controls = new PlayerControl();
+
+        // Move controls
+        controls.Gameplay.Move.performed += ctx => _move = ctx.ReadValue<Vector2>();
+        controls.Gameplay.Move.canceled += ctx => _move = Vector2.zero;
+        controls.Gameplay.Move.performed += ctx => _rotation = Mathf.Atan2(-ctx.ReadValue<Vector2>().x, ctx.ReadValue<Vector2>().y)* Mathf.Rad2Deg;
+
+
+    }
+
+    private void OnEnable() {
+        controls.Gameplay.Enable();
+    }
+
+    private void OnDisable() {
+        controls.Gameplay.Disable();
+    }
+
     // Start is called before the first frame update
     void Start()
     {
         HP = MaxHP;
+
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        float horizontalInput = Input.GetAxis("Horizontal");
-        float verticalInput = Input.GetAxis("Vertical");
+        
+        // Movement
+        GetComponent<Rigidbody2D>().velocity = _move * Speed * Time.deltaTime;
 
-        Vector2 movementDirection = new Vector2(horizontalInput, verticalInput);
+        // Rotation
+        transform.rotation = Quaternion.Euler(0, 0, _rotation);
 
-        // Normalize direction so diagonal movements are not faster
-        movementDirection.Normalize();
 
-        GetComponent<Rigidbody2D>().velocity = movementDirection * Speed * Time.deltaTime;
-
+        // Update health bar 
         _healthBar.UpdateHealthBar(HP, MaxHP);
 
     }
