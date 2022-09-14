@@ -5,6 +5,8 @@ using UnityEngine.InputSystem;
 
 public class Character : MonoBehaviour
 {
+    // Indicates if it can be controlled by the user
+    [SerializeField] private bool _isPlayer;
 
     // Character Speed
     [SerializeField] private int _speed;
@@ -79,17 +81,38 @@ public class Character : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        
+        if (_isPlayer)
+        {
+            MovePlayer();
+        }
+        else
+        {
+            GetComponent<Rigidbody2D>().velocity = new Vector2(0, 0);
+            transform.rotation = Quaternion.Euler(0, 0, 0);
+        }
+    }
+
+    private void MovePlayer()
+    {
         // Movement
         GetComponent<Rigidbody2D>().velocity = _move * Speed * Time.deltaTime;
 
         // Rotation
         transform.rotation = Quaternion.Euler(0, 0, _rotation);
+    }
 
+    private void OnCollisionEnter2D(Collision2D other) 
+    {
+        if (other.gameObject.tag == "Character")
+        {
+            GetHit();
+        }
+    }
 
-        // Update health bar 
+    private void GetHit()
+    {
+        HP -= 1;
         _healthBar.UpdateHealthBar(HP, MaxHP);
-
     }
 
 }
