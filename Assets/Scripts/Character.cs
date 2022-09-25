@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
+
 
 public class Character : MonoBehaviour
 {
@@ -38,6 +40,10 @@ public class Character : MonoBehaviour
         }
         set {
             _hp = Mathf.Clamp(value, 0, MaxHP);
+            if (_hp == 0)
+            {
+                Die();
+            }
         }
     }
 
@@ -205,5 +211,13 @@ public class Character : MonoBehaviour
         _invulnerable = true;
         yield return new WaitForSeconds(iFrames);
         _invulnerable = false;
+    }
+    
+    private void Die()
+    {
+        if (_isPlayer)
+        {
+            SceneManager.LoadScene(2);
+        }
     }
 }
