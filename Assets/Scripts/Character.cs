@@ -41,16 +41,20 @@ public class Character : MonoBehaviour
         }
     }
 
-    // Invulnerability frames in seconds
-    [SerializeField] private float _iFrames; 
+    // Invulnerability frames after hit  in seconds
+    [SerializeField] private float _iFramesHit; 
+
+    // Dash
+    [SerializeField] private float _dashIFrames;
+    [SerializeField] private float _dashStrength;
 
     // Is the character vulnerable or not. When it is invulnerable
-    // it cannot be hit again, and cannot move
+    // it cannot be hit again, and cannot do any action
     private bool _invulnerable;
+
 
     // Character health bar
     [SerializeField] private HealthBar _healthBar;
-
 
     // Character Weapon
     [SerializeField] private Weapon _weapon;
@@ -63,38 +67,91 @@ public class Character : MonoBehaviour
     // -------------------- ACTIONS --------------------
 
     public void OnMove(InputAction.CallbackContext ctx)
-    {
-        _move = ctx.ReadValue<Vector2>();
-        _rotation = Mathf.Atan2(-ctx.ReadValue<Vector2>().x, ctx.ReadValue<Vector2>().y)* Mathf.Rad2Deg;
+    {   
+        if (_isPlayer)
+        {
+            _move = ctx.ReadValue<Vector2>();
+            // Only update rotation if is moving, otherwise keep old rotation
+            if (ctx.ReadValue<Vector2>() != new Vector2(0, 0))
+            {
+                _rotation = Mathf.Atan2(-ctx.ReadValue<Vector2>().x, ctx.ReadValue<Vector2>().y)* Mathf.Rad2Deg;
+            }
+        }
+    }
 
+    private void MovePlayer()
+    {
+        if (!_invulnerable)
+        {
+            // Movement
+            GetComponent<Rigidbody2D>().velocity = _move * Speed * Time.deltaTime;
+
+            // Rotation
+            transform.rotation = Quaternion.Euler(0, 0, _rotation);
+        }
     }
 
     public void OnAttack(InputAction.CallbackContext ctx)
     {
         if (_isPlayer)
         {
-            if (!_weapon.WeaponCooldown)
-            {
-                _weapon.Attack();
-                _weapon.WeaponCooldown = true;
-                StartCoroutine(_weapon.CooldownAttack());
-            }
+            Attack();
+        }
+    }
+
+    private void Attack ()
+    {
+        // Can only attack if weapon is not on cooldown
+        if (!_weapon.WeaponCooldown && !_invulnerable)
+        {
+            _weapon.Attack();
+            _weapon.WeaponCooldown = true;
+            StartCoroutine(_weapon.CooldownAttack());
         }
     }
 
     public void OnBlock(InputAction.CallbackContext ctx)
     {
-        Debug.Log("Block");
+        if (_isPlayer)
+        {
+            Debug.Log("Block");
+            Block();
+        }
+    }
+
+    private void Block()
+    {
+        if (!_invulnerable)
+        {
+            
+        }
     }
 
     public void OnDash(InputAction.CallbackContext ctx)
     {
-        Debug.Log("Dash");
+        if (_isPlayer)
+        {
+            Dash();
+        }
+    }
+
+    private void Dash()
+    {
+        if (!_invulnerable)
+        {
+            StartCoroutine(IFrames(_dashIFrames));
+
+            GetComponent<Rigidbody2D>().AddForce(transform.up * _dashStrength);
+            transform.rotation = Quaternion.Euler(0, 0, _rotation);
+        }
     }
 
     public void OnAdditional(InputAction.CallbackContext ctx)
     {
-        Debug.Log("Additional");
+        // if (!_invulnerable && _isPlayer)
+        // {
+        //     Debug.Log("Additional");
+        // }
     }
 
     // -------------------------------------------------
@@ -107,28 +164,8 @@ public class Character : MonoBehaviour
 
     // Update is called once per frame
     void FixedUpdate()
-    {
-        if (!_invulnerable)
-        {
-            if (_isPlayer)
-            {
-                MovePlayer();
-            }
-            else
-            {
-                GetComponent<Rigidbody2D>().velocity = new Vector2(0, 0);
-                transform.rotation = Quaternion.Euler(0, 0, 0);
-            }
-        }
-    }
-
-    private void MovePlayer()
-    {
-        // Movement
-        GetComponent<Rigidbody2D>().velocity = _move * Speed * Time.deltaTime;
-
-        // Rotation
-        transform.rotation = Quaternion.Euler(0, 0, _rotation);
+    {        
+        MovePlayer();
     }
 
     private void OnTriggerEnter2D(Collider2D other) 
@@ -153,22 +190,20 @@ public class Character : MonoBehaviour
         }
     }
 
-    
-
-    private IEnumerator IFrames()
-    {
-        _invulnerable = true;
-        yield return new WaitForSeconds(_iFrames);
-        _invulnerable = false;
-    }
-
     private void GetHit(Vector3 direction, int strength)
     {
         HP -= 1;
         _healthBar.UpdateHealthBar(HP, MaxHP);
-        StartCoroutine(IFrames());
+        StartCoroutine(IFrames(_iFramesHit));
 
         // Move in the opposite direction with certain strength
         GetComponent<Rigidbody2D>().AddForce(direction * strength);
+    }
+
+    private IEnumerator IFrames(float iFrames)
+    {
+        _invulnerable = true;
+        yield return new WaitForSeconds(iFrames);
+        _invulnerable = false;
     }
 }

@@ -331,7 +331,9 @@ MonoBehaviour:
   _isPlayer: 0
   _speed: 200
   _maxHp: 5
-  _iFrames: 0.5
+  _iFramesHit: 0.5
+  _dashIFrames: 0.1
+  _dashStrength: 1000
   _healthBar: {fileID: 0}
   _weapon: {fileID: 0}
 --- !u!212 &7199805085518765300
@@ -406,7 +408,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 1
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!58 &7199805085518765064
 CircleCollider2D:
   m_ObjectHideFlags: 0
