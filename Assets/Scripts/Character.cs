@@ -65,6 +65,8 @@ public class Character : MonoBehaviour
     // Character Weapon
     [SerializeField] private Weapon _weapon;
 
+    // Character Shield
+    [SerializeField] private Shield _shield;
 
     // Character movement and rotation
     private Vector2 _move;
@@ -80,7 +82,11 @@ public class Character : MonoBehaviour
             // Only update rotation if is moving, otherwise keep old rotation
             if (ctx.ReadValue<Vector2>() != new Vector2(0, 0))
             {
-                _rotation = Mathf.Atan2(-ctx.ReadValue<Vector2>().x, ctx.ReadValue<Vector2>().y)* Mathf.Rad2Deg;
+                // Block rotation if attacking
+                if (_weapon.CanAttack == false)
+                {
+                    _rotation = Mathf.Atan2(-ctx.ReadValue<Vector2>().x, ctx.ReadValue<Vector2>().y)* Mathf.Rad2Deg;
+                }
             }
         }
     }
@@ -99,7 +105,7 @@ public class Character : MonoBehaviour
 
     public void OnAttack(InputAction.CallbackContext ctx)
     {
-        if (_isPlayer)
+        if (_isPlayer && ctx.performed)
         {
             Attack();
         }
@@ -120,8 +126,14 @@ public class Character : MonoBehaviour
     {
         if (_isPlayer)
         {
-            Debug.Log("Block");
-            Block();
+            if (ctx.performed)
+            {
+                Block();
+            }
+            else if (ctx.canceled)
+            {
+                Unblock();
+            }
         }
     }
 
@@ -129,13 +141,18 @@ public class Character : MonoBehaviour
     {
         if (!_invulnerable)
         {
-            
+            _shield.Block();
         }
+    }
+
+    private void Unblock()
+    {
+        _shield.Unblock();
     }
 
     public void OnDash(InputAction.CallbackContext ctx)
     {
-        if (_isPlayer)
+        if (_isPlayer && ctx.performed)
         {
             Dash();
         }

@@ -42,7 +42,7 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
                     ""id"": ""2ed9ea36-2b11-44d5-adb1-c4074e90c045"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
+                    ""interactions"": ""Press"",
                     ""initialStateCheck"": false
                 },
                 {
@@ -51,7 +51,7 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
                     ""id"": ""f3c6aadf-4cc9-478b-b645-1bddd6a4ddd5"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
+                    ""interactions"": ""Press"",
                     ""initialStateCheck"": false
                 },
                 {
@@ -60,7 +60,7 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
                     ""id"": ""30ae0039-a90d-4e2f-89a0-803ecc96fcad"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
+                    ""interactions"": ""Press"",
                     ""initialStateCheck"": false
                 },
                 {
@@ -69,7 +69,7 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
                     ""id"": ""332604ca-fd9d-43b5-ba9d-a798227c2789"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
+                    ""interactions"": ""Press"",
                     ""initialStateCheck"": false
                 }
             ],
@@ -240,7 +240,7 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
                     ""id"": ""580e287f-ef22-43db-a807-07d2e3b1108b"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
+                    ""interactions"": ""Press"",
                     ""initialStateCheck"": false
                 },
                 {

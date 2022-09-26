@@ -1541,6 +1541,14 @@ PrefabInstance:
       propertyPath: _healthBar
       value: 
       objectReference: {fileID: 2064635088}
+    - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
+      propertyPath: _dashIFrames
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
+      propertyPath: _dashStrength
+      value: 500
+      objectReference: {fileID: 0}
     - target: {fileID: 7199805085518765301, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: m_RootOrder
       value: 3

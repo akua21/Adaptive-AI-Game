@@ -42,6 +42,9 @@ public class Weapon : MonoBehaviour
         get {
             return _canAttack;
         }
+        private set {
+            _canAttack = value;
+        }
     }
 
     // Start is called before the first frame update
@@ -64,12 +67,12 @@ public class Weapon : MonoBehaviour
     // Allow attacking (Triggered on the animation)
     public void AllowAttack()
     {
-        _canAttack = true;
+        CanAttack = true;
     }   
 
     // Disallow attacking (Triggered on the animation)
     public void DisallowAttack()
     {
-        _canAttack = false;
+        CanAttack = false;
     }
 }
