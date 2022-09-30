@@ -7,6 +7,16 @@ public class Shield : MonoBehaviour
     // Animator
     private Animator _animator;
 
+    private bool _isBlocking;
+    public bool IsBlocking {
+        get {
+            return _isBlocking;
+        }
+        set {
+            _isBlocking = value;
+        }
+    }
+
     // Start is called before the first frame update
     void Start()
     {

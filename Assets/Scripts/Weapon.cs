@@ -37,13 +37,13 @@ public class Weapon : MonoBehaviour
 
     // Boolean that indicates that it is attacking. Can only hit if 
     // it is
-    private bool _canAttack;
-    public bool CanAttack {
+    private bool _isAttacking;
+    public bool IsAttacking {
         get {
-            return _canAttack;
+            return _isAttacking;
         }
         private set {
-            _canAttack = value;
+            _isAttacking = value;
         }
     }
 
@@ -67,12 +67,12 @@ public class Weapon : MonoBehaviour
     // Allow attacking (Triggered on the animation)
     public void AllowAttack()
     {
-        CanAttack = true;
+        IsAttacking = true;
     }   
 
     // Disallow attacking (Triggered on the animation)
     public void DisallowAttack()
     {
-        CanAttack = false;
+        IsAttacking = false;
     }
 }

@@ -72,6 +72,7 @@ public class Character : MonoBehaviour
     private Vector2 _move;
     private float _rotation;
 
+
     // -------------------- ACTIONS --------------------
 
     public void OnMove(InputAction.CallbackContext ctx)
@@ -83,7 +84,7 @@ public class Character : MonoBehaviour
             if (ctx.ReadValue<Vector2>() != new Vector2(0, 0))
             {
                 // Block rotation if attacking
-                if (_weapon.CanAttack == false)
+                if (_weapon.IsAttacking == false)
                 {
                     _rotation = Mathf.Atan2(-ctx.ReadValue<Vector2>().x, ctx.ReadValue<Vector2>().y)* Mathf.Rad2Deg;
                 }
@@ -114,7 +115,7 @@ public class Character : MonoBehaviour
     private void Attack ()
     {
         // Can only attack if weapon is not on cooldown
-        if (!_weapon.WeaponCooldown && !_invulnerable)
+        if (!_weapon.WeaponCooldown && !_invulnerable && !_shield.IsBlocking)
         {
             _weapon.Attack();
             _weapon.WeaponCooldown = true;
@@ -139,15 +140,20 @@ public class Character : MonoBehaviour
 
     private void Block()
     {
-        if (!_invulnerable)
+        if (!_invulnerable && !_weapon.IsAttacking)
         {
             _shield.Block();
+            _shield.IsBlocking = true;
         }
     }
 
     private void Unblock()
     {
-        _shield.Unblock();
+        if (_shield.IsBlocking)
+        {
+            _shield.Unblock();
+            _shield.IsBlocking = false;
+        }
     }
 
     public void OnDash(InputAction.CallbackContext ctx)
@@ -160,7 +166,7 @@ public class Character : MonoBehaviour
 
     private void Dash()
     {
-        if (!_invulnerable)
+        if (!_invulnerable && !_weapon.IsAttacking && !_shield.IsBlocking)
         {
             StartCoroutine(IFrames(_dashIFrames));
 
@@ -201,16 +207,53 @@ public class Character : MonoBehaviour
             {   
                 Weapon otherWeapon = other.GetComponent<Weapon>();
                 // Check it is not its own weapon, and that it can attack
-                if (otherWeapon != _weapon && otherWeapon.CanAttack)
+                if (otherWeapon != _weapon && otherWeapon.IsAttacking)
                 {
 
                     Vector3 hitDirection = transform.position - otherWeapon.transform.position;
                     hitDirection.Normalize();
 
-                    GetHit(hitDirection, 200);
+                    // Angle between the two collisions
+                    float angleHit = Mathf.DeltaAngle(transform.localEulerAngles.z, otherWeapon.transform.eulerAngles.z);
+
+                    // Get in absolute value, which would be at most 180. Then remove 180, and the closer to 0, the closer
+                    // the frontal collision
+                    angleHit = Mathf.Abs(Mathf.Abs(angleHit) - 180);
+
+                    // If the angle is smaller than a threshold, the hit has been blocked
+                    if (_shield.IsBlocking && angleHit < 50)
+                    {
+                        BlockHit(hitDirection, 50);
+                        Character attacker = other.transform.parent.gameObject.GetComponent<Character>();
+                        attacker.AttackIsBlocked(-hitDirection, 100);
+
+                    } 
+                    else
+                    {
+                        GetHit(hitDirection, 200);
+                    }
+
+
+
                 }
             }
         }
+    }
+
+    private void BlockHit(Vector3 direction, int strength)
+    {
+        StartCoroutine(IFrames(_iFramesHit));
+
+        // Move in the opposite direction with certain strength
+        GetComponent<Rigidbody2D>().AddForce(direction * strength);
+    }
+
+    public void AttackIsBlocked(Vector3 direction, int strength)
+    {
+        StartCoroutine(IFrames(_iFramesHit));
+
+        // Move in the opposite direction with certain strength
+        GetComponent<Rigidbody2D>().AddForce(direction * strength);
     }
 
     private void GetHit(Vector3 direction, int strength)

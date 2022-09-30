@@ -33,11 +33,11 @@ public class ControllerVisuals : MonoBehaviour
         controls.Gameplay.Block.performed += ctx => southInner.SetActive(true);
         controls.Gameplay.Block.canceled += ctx => southInner.SetActive(false);
 
-        controls.Gameplay.Dash.performed += ctx => eastInner.SetActive(true);
-        controls.Gameplay.Dash.canceled += ctx => eastInner.SetActive(false);
+        controls.Gameplay.Dash.performed += ctx => westInner.SetActive(true);
+        controls.Gameplay.Dash.canceled += ctx => westInner.SetActive(false);
 
-        controls.Gameplay.Attack.performed += ctx => westInner.SetActive(true);
-        controls.Gameplay.Attack.canceled += ctx => westInner.SetActive(false);
+        controls.Gameplay.Attack.performed += ctx => eastInner.SetActive(true);
+        controls.Gameplay.Attack.canceled += ctx => eastInner.SetActive(false);
 
 
     }
