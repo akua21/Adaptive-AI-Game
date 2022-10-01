@@ -7,6 +7,22 @@ public class Shield : MonoBehaviour
     // Animator
     private Animator _animator;
 
+    // Degrees where the block is effetcive 
+    [SerializeField] private float _protectionDegrees;
+    public float ProtectionDegrees {
+        get {
+            return _protectionDegrees;
+        }
+    }
+
+    // Knockback the shield makes the hitter go back
+    [SerializeField] private int _strength;
+    public int Strength {
+        get {
+            return _strength;
+        }
+    }
+
     private bool _isBlocking;
     public bool IsBlocking {
         get {

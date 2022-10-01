@@ -121,7 +121,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _attackDelay: 0.3
-  _attackStrength: 0
+  _strength: 100
 --- !u!61 &5455731717360072220
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -178,9 +178,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8002287131609734008}
+  - component: {fileID: 6012580596188670167}
   - component: {fileID: 6423984519845349673}
   - component: {fileID: 9187469754440597457}
-  - component: {fileID: 6012580596188670167}
   m_Layer: 0
   m_Name: Shield
   m_TagString: Untagged
@@ -203,6 +203,20 @@ Transform:
   m_Father: {fileID: 7199805085518765301}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 58.622}
+--- !u!114 &6012580596188670167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6438381992972273732}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 407d1d8f18a9af3f9a19fea1287c2615, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _protectionDegrees: 55
+  _strength: 100
 --- !u!212 &6423984519845349673
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -275,18 +289,6 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
---- !u!114 &6012580596188670167
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6438381992972273732}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 407d1d8f18a9af3f9a19fea1287c2615, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &7199805085518765303
 GameObject:
   m_ObjectHideFlags: 0
@@ -296,11 +298,12 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7199805085518765301}
-  - component: {fileID: 7727284068055483492}
   - component: {fileID: 7199805085518765066}
+  - component: {fileID: 7727284068055483492}
   - component: {fileID: 7199805085518765300}
   - component: {fileID: 7199805085518765067}
   - component: {fileID: 7199805085518765064}
+  - component: {fileID: 2115853600683739664}
   m_Layer: 0
   m_Name: Character
   m_TagString: Character
@@ -325,6 +328,28 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7199805085518765066
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7199805085518765303}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44314b82ec4102b61a54b2a5d2e09f81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _behaviour: 0
+  _speed: 200
+  _maxHp: 5
+  _iFramesHit: 0.5
+  _dashIFrames: 0.1
+  _dashStrength: 1000
+  _blockKnockback: 50
+  _healthBar: {fileID: 0}
+  _weapon: {fileID: 4650094125835358760}
+  _shield: {fileID: 6012580596188670167}
 --- !u!114 &7727284068055483492
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -438,32 +463,11 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 29318e7d-3f57-45a0-bc94-74ca22d20e63
     m_ActionName: Menu/Move[/Gamepad/leftStick,/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d]
-  m_NeverAutoSwitchControlSchemes: 1
-  m_DefaultControlScheme: 
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: Player 1
   m_DefaultActionMap: Gameplay
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!114 &7199805085518765066
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7199805085518765303}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 44314b82ec4102b61a54b2a5d2e09f81, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _isPlayer: 0
-  _speed: 200
-  _maxHp: 5
-  _iFramesHit: 0.5
-  _dashIFrames: 0.1
-  _dashStrength: 1000
-  _healthBar: {fileID: 0}
-  _weapon: {fileID: 4650094125835358760}
-  _shield: {fileID: 6012580596188670167}
 --- !u!212 &7199805085518765300
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -553,3 +557,23 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.5
+--- !u!95 &2115853600683739664
+Animator:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7199805085518765303}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 395f6294be8f43b0988c3140b192b0c9, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0

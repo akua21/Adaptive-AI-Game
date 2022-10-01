@@ -25,10 +25,10 @@ public class Weapon : MonoBehaviour
     }
 
     // Strenght damage (nockback)
-    [SerializeField] private int _attackStrength;
-    public float AttackStrength {
+    [SerializeField] private int _strength;
+    public int Strength {
         get {
-            return _attackStrength;
+            return _strength;
         }
     }
 
