@@ -35,6 +35,14 @@ public class Weapon : MonoBehaviour
     // Animator
     private Animator _animator;
 
+    // Parent character
+    private Character _parentCharacter;
+    public Character ParentCharacter {
+        get {
+            return _parentCharacter;
+        }
+    }
+
     // Boolean that indicates that it is attacking. Can only hit if 
     // it is
     private bool _isAttacking;
@@ -51,28 +59,30 @@ public class Weapon : MonoBehaviour
     void Start()
     {
         _animator = GetComponent<Animator>();    
+        _parentCharacter = transform.parent.gameObject.GetComponent<Character>();
     }
  
     public void Attack()
     {
         _animator.SetTrigger("Attack");
+        StartCoroutine(CooldownAttack());
+        _isAttacking = true;
     }
 
     public IEnumerator CooldownAttack()
     {
+        WeaponCooldown = true;
         yield return new WaitForSeconds(AttackDelay);
         WeaponCooldown = false;
     }
-
-    // Allow attacking (Triggered on the animation)
-    public void AllowAttack()
+ 
+    // Stop attacking (Triggered on the animation)
+    public void StopAttack()
     {
-        IsAttacking = true;
-    }   
-
-    // Disallow attacking (Triggered on the animation)
-    public void DisallowAttack()
-    {
-        IsAttacking = false;
+        if (_parentCharacter.CurrentState == CharacterState.attack)
+        {
+            _parentCharacter.CurrentState = CharacterState.idle;
+        };
+        _isAttacking = false;   
     }
 }

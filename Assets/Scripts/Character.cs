@@ -5,11 +5,10 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public enum BehaviourEnum { player, bot };
-public enum CharacterState { idle, attack, block, dash };
+public enum CharacterState { idle, attack, block, dash, hitted, recoil };
 
 public class GameInputs
 {
-
     public int PlayerHP { get; set; }
     public int BotHP { get; set; }
     public float DistanceToPlayer { get; set; }
@@ -56,9 +55,6 @@ public class GameInputs
 
 public class Character : MonoBehaviour
 {
-    
-
-
     [Header("Behaviour")]
     // Indicates if it can be controlled by the user
     [SerializeField] private BehaviourEnum _behaviour;
@@ -126,6 +122,9 @@ public class Character : MonoBehaviour
     // Character Shield
     [SerializeField] private Shield _shield;
 
+    // Other Character in the scene
+    [SerializeField] private Character _otherCharacter;
+
     // Character movement and rotation
     private Vector2 _move;
     private float _rotation;
@@ -133,6 +132,54 @@ public class Character : MonoBehaviour
     // Animator
     private Animator _animator;
 
+    // Game Inputs
+    private GameInputs _gameInputs;
+
+    // Current State
+    private CharacterState _currentState;
+    public CharacterState CurrentState {
+        get {
+            return _currentState;
+        }
+        set {
+            _currentState = value;
+        }
+    }
+
+
+    // -------------------------------------------------
+    // ----------------- State Machine -----------------
+    // -------------------------------------------------
+
+    private void StateToIdle() 
+    {
+        _currentState = CharacterState.idle;
+    }
+
+    private void StateToAttack()
+    {
+        _currentState = CharacterState.attack;
+    }
+
+    private void StateToBlock()
+    {
+        _currentState = CharacterState.block;
+    }
+
+    private void StateToDash()
+    {
+        _currentState = CharacterState.dash;
+    }
+
+    private void StateToHitted()
+    {
+        _currentState = CharacterState.hitted;
+    }
+
+    private void StateToRecoil()
+    {
+        _currentState = CharacterState.recoil;
+    }
 
     // -------------------------------------------------
     // -------------------- Actions --------------------
@@ -155,9 +202,9 @@ public class Character : MonoBehaviour
         }
     }
 
-    private void MovePlayer()
+    private void Move()
     {
-        if (!_invulnerable)
+        if (_currentState != CharacterState.dash && _currentState != CharacterState.hitted && _currentState != CharacterState.recoil)
         {
             // Movement
             GetComponent<Rigidbody2D>().velocity = _move * Speed * Time.deltaTime;
@@ -180,14 +227,14 @@ public class Character : MonoBehaviour
 
     private void Attack ()
     {
-        // Can only attack if weapon is not on cooldown
-        if (!_weapon.WeaponCooldown && !_invulnerable && !_shield.IsBlocking)
+        // Can only attack if idle state and weapon is not on cooldown
+        if (_currentState == CharacterState.idle && !_weapon.WeaponCooldown)
         {
+            StateToAttack();
             _weapon.Attack();
-            _weapon.WeaponCooldown = true;
-            StartCoroutine(_weapon.CooldownAttack());
         }
     }
+
 
     public void OnBlock(InputAction.CallbackContext ctx)
     {
@@ -206,19 +253,19 @@ public class Character : MonoBehaviour
 
     private void Block()
     {
-        if (!_invulnerable && !_weapon.IsAttacking)
+        if (_currentState == CharacterState.idle)
         {
+            StateToBlock();
             _shield.Block();
-            _shield.IsBlocking = true;
         }
     }
 
     private void Unblock()
     {
-        if (_shield.IsBlocking)
+        if (_currentState == CharacterState.block)
         {
+            StateToIdle();
             _shield.Unblock();
-            _shield.IsBlocking = false;
         }
     }
 
@@ -232,8 +279,9 @@ public class Character : MonoBehaviour
 
     private void Dash()
     {
-        if (!_invulnerable && !_weapon.IsAttacking && !_shield.IsBlocking)
+        if (_currentState == CharacterState.idle)
         {
+            StateToDash();
             StartCoroutine(IFrames(_dashIFrames));
 
             GetComponent<Rigidbody2D>().AddForce(transform.up * _dashStrength);
@@ -241,13 +289,13 @@ public class Character : MonoBehaviour
         }
     }
 
-    public void OnAdditional(InputAction.CallbackContext ctx)
-    {
-        if (!_invulnerable && _behaviour == BehaviourEnum.player)
-        {
-            Debug.Log("Additional");
-        }
-    }
+    // public void OnAdditional(InputAction.CallbackContext ctx)
+    // {
+    //     if (!_invulnerable && _behaviour == BehaviourEnum.player)
+    //     {
+    //         Debug.Log("Additional");
+    //     }
+    // }
 
     // -------------------------------------------------
     // ----------------- Bot Behaviour -----------------
@@ -274,6 +322,21 @@ public class Character : MonoBehaviour
                 Attack();
             }
         }
+    }
+
+    private void UpdateGameInputs() 
+    {
+        if (_behaviour != BehaviourEnum.player)
+        {
+            _gameInputs.PlayerHP = _otherCharacter.HP;
+            _gameInputs.BotHP = _hp;
+            _gameInputs.DistanceToPlayer = Vector2.Distance(transform.position, _otherCharacter.transform.position);
+            _gameInputs.DirectionToPlayer = transform.position - _otherCharacter.transform.position;
+            _gameInputs.PlayerState = _currentState;
+            _gameInputs.BotState = _otherCharacter.CurrentState;
+            _gameInputs.PlayerRotation = _otherCharacter.transform.eulerAngles.z;
+            _gameInputs.BotRotation = transform.eulerAngles.z;
+        }
     }  
 
     // -------------------------------------------------
@@ -285,27 +348,28 @@ public class Character : MonoBehaviour
     {
         HP = MaxHP;
         _animator = GetComponent<Animator>();
-
+        _gameInputs = new GameInputs();
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {           
+        UpdateGameInputs();
         AgentBehaviour(); 
-        MovePlayer();
+        Move();
     }
 
     private void OnTriggerEnter2D(Collider2D other) 
     {   
         // Only check if player is vulnerable 
-        if (!_invulnerable)
+        if (_currentState != CharacterState.dash && _currentState != CharacterState.hitted)
         {
             // First check that it is a weapon
             if (other.gameObject.tag == "Weapon")
             {   
                 Weapon otherWeapon = other.GetComponent<Weapon>();
-                // Check it is not its own weapon, and that it can attack
-                if (otherWeapon != _weapon && otherWeapon.IsAttacking)
+                // Check it is not its own weapon, and that its character is attacking
+                if (otherWeapon != _weapon && otherWeapon.ParentCharacter.CurrentState == CharacterState.attack)
                 {
 
                     Vector3 hitDirection = transform.position - otherWeapon.transform.position;
@@ -319,15 +383,18 @@ public class Character : MonoBehaviour
                     angleHit = Mathf.Abs(Mathf.Abs(angleHit) - 180);
 
                     // If the angle is smaller than a threshold, the hit has been blocked
-                    if (_shield.IsBlocking && angleHit < _shield.ProtectionDegrees)
+                    if (_currentState == CharacterState.block && angleHit < _shield.ProtectionDegrees)
                     {
                         BlockHit(hitDirection, _blockKnockback);
-                        Character attacker = other.transform.parent.gameObject.GetComponent<Character>();
-                        attacker.AttackIsBlocked(-hitDirection, _shield.Strength);
-
+                        otherWeapon.ParentCharacter.AttackIsBlocked(-hitDirection, _shield.Strength);
                     } 
                     else
                     {
+                        if (_currentState == CharacterState.block)
+                        {
+                            _shield.Unblock();
+                        }
+                        StateToHitted();
                         GetHit(hitDirection, otherWeapon.Strength);
                     }
                 }
@@ -337,7 +404,9 @@ public class Character : MonoBehaviour
 
     private void BlockHit(Vector3 direction, int strength)
     {
-        StartCoroutine(IFrames(_iFramesHit));
+        StateToRecoil();
+        _shield.Unblock();
+        StartCoroutine(IFramesNoAnim(_iFramesHit));
 
         // Move in the opposite direction with certain strength
         GetComponent<Rigidbody2D>().AddForce(direction * strength);
@@ -345,7 +414,8 @@ public class Character : MonoBehaviour
 
     public void AttackIsBlocked(Vector3 direction, int strength)
     {
-        StartCoroutine(IFrames(_iFramesHit));
+        StateToRecoil();
+        StartCoroutine(IFramesNoAnim(_iFramesHit));
 
         // Move in the opposite direction with certain strength
         GetComponent<Rigidbody2D>().AddForce(direction * strength);
@@ -363,11 +433,18 @@ public class Character : MonoBehaviour
 
     private IEnumerator IFrames(float iFrames)
     {
-        _invulnerable = true;
         _animator.SetTrigger("Invulnerable");
         yield return new WaitForSeconds(iFrames);
-        _invulnerable = false;
         _animator.SetTrigger("Vulnerable");
+
+        StateToIdle();
+    }
+
+    private IEnumerator IFramesNoAnim(float iFrames)
+    {
+        yield return new WaitForSeconds(iFrames);
+
+        StateToIdle();
     }
     
     private void Die()
