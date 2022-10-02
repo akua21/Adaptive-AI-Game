@@ -107,10 +107,6 @@ public class Character : MonoBehaviour
     // How much a character in knockbacked when blocking
     [SerializeField] private int _blockKnockback; 
 
-    // Is the character vulnerable or not. When it is invulnerable
-    // it cannot be hit again, and cannot do any action
-    private bool _invulnerable;
-
 
     [Header("HUD")]
     // Character health bar
@@ -125,6 +121,12 @@ public class Character : MonoBehaviour
     // Other Character in the scene
     [SerializeField] private Character _otherCharacter;
 
+
+    [Header("BOT")]
+    [SerializeField] private float _randIntensityMove;
+
+
+    // No SerializeField
     // Character movement and rotation
     private Vector2 _move;
     private float _rotation;
@@ -289,14 +291,6 @@ public class Character : MonoBehaviour
         }
     }
 
-    // public void OnAdditional(InputAction.CallbackContext ctx)
-    // {
-    //     if (!_invulnerable && _behaviour == BehaviourEnum.player)
-    //     {
-    //         Debug.Log("Additional");
-    //     }
-    // }
-
     // -------------------------------------------------
     // ----------------- Bot Behaviour -----------------
     // -------------------------------------------------
@@ -304,7 +298,11 @@ public class Character : MonoBehaviour
     {
         if (_behaviour == BehaviourEnum.bot)
         {
-            _move = new Vector2(Random.value - 0.5f, Random.value - 0.5f);
+            // Movement
+            _move = _gameInputs.DirectionToPlayer;
+            _move.Normalize();
+            Vector2 randMove = new Vector2(Random.Range(-_randIntensityMove, _randIntensityMove), Random.Range(-_randIntensityMove, _randIntensityMove));
+            _move = _move + randMove;
             _move.Normalize();
 
             // Only update rotation if is moving, otherwise keep old rotation
@@ -331,7 +329,7 @@ public class Character : MonoBehaviour
             _gameInputs.PlayerHP = _otherCharacter.HP;
             _gameInputs.BotHP = _hp;
             _gameInputs.DistanceToPlayer = Vector2.Distance(transform.position, _otherCharacter.transform.position);
-            _gameInputs.DirectionToPlayer = transform.position - _otherCharacter.transform.position;
+            _gameInputs.DirectionToPlayer = _otherCharacter.transform.position - transform.position;
             _gameInputs.PlayerState = _currentState;
             _gameInputs.BotState = _otherCharacter.CurrentState;
             _gameInputs.PlayerRotation = _otherCharacter.transform.eulerAngles.z;
