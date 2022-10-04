@@ -2317,7 +2317,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7727284068055483492, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: m_DefaultControlScheme
-      value: Player 1
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 7968421115972243575, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: m_BodyType

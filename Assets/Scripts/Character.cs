@@ -6,6 +6,8 @@ using UnityEngine.SceneManagement;
 
 public enum BehaviourEnum { player, bot };
 public enum CharacterState { idle, attack, block, dash, hitted, recoil };
+public enum BotMovementState { idle, follow, wander };
+
 
 public class GameInputs
 {
@@ -148,6 +150,12 @@ public class Character : MonoBehaviour
         }
     }
 
+    // Bot Movement State
+    private BotMovementState _botMovementState;
+
+    // Point where the bot wanders
+    private Vector2 _wanderingPoint;
+
 
     // -------------------------------------------------
     // ----------------- State Machine -----------------
@@ -182,6 +190,27 @@ public class Character : MonoBehaviour
     {
         _currentState = CharacterState.recoil;
     }
+
+
+    // -------------------------------------------------
+    // ---------- Bot Movement State Machine -----------
+    // -------------------------------------------------
+
+    private void MovementStateToIdle() 
+    {
+        _botMovementState = BotMovementState.idle;
+    }
+
+    private void MovementStateToFollow()
+    {
+        _botMovementState = BotMovementState.follow;
+    }
+
+    private void MovementStateToWander()
+    {
+        _botMovementState = BotMovementState.wander;
+    }
+
 
     // -------------------------------------------------
     // -------------------- Actions --------------------
@@ -294,30 +323,89 @@ public class Character : MonoBehaviour
     // -------------------------------------------------
     // ----------------- Bot Behaviour -----------------
     // -------------------------------------------------
+    private void UpdateMovementBotState()
+    {
+        float randomChance = Random.value;
+
+        if (_botMovementState == BotMovementState.idle)
+        {
+            if (randomChance < 0.07)
+            {
+                _botMovementState = BotMovementState.follow;
+            }
+            else if (randomChance < 0.1)
+            {
+                _botMovementState = BotMovementState.wander;
+                _wanderingPoint = Random.insideUnitCircle * 8;
+            }
+        }
+        else if (_botMovementState == BotMovementState.follow)
+        {
+            if (randomChance < 0.1)
+            {
+                _botMovementState = BotMovementState.idle;
+            }
+        }
+        else if (_botMovementState == BotMovementState.wander)
+        {
+            if (randomChance < 0.1)
+            {
+                _botMovementState = BotMovementState.idle;
+            }
+        }
+
+    }
+
     private void AgentBehaviour()
     {
         if (_behaviour == BehaviourEnum.bot)
         {
             // Movement
-            _move = _gameInputs.DirectionToPlayer;
-            _move.Normalize();
-            Vector2 randMove = new Vector2(Random.Range(-_randIntensityMove, _randIntensityMove), Random.Range(-_randIntensityMove, _randIntensityMove));
-            _move = _move + randMove;
-            _move.Normalize();
+            if (_botMovementState == BotMovementState.idle)
+            {
+                _move = new Vector2(0, 0);
+            }
+            else if (_botMovementState == BotMovementState.follow)
+            {
+                _move = _gameInputs.DirectionToPlayer;
+            }
+            else if (_botMovementState == BotMovementState.wander)
+            {
+                _move = _wanderingPoint - new Vector2(transform.position.x, transform.position.y);
+            }
 
             // Only update rotation if is moving, otherwise keep old rotation
             if (_move != new Vector2(0, 0))
             {
-                // Block rotation if attacking
-                // if (_weapon.IsAttacking == false)
-                // {
+                 _move.Normalize();
                 _rotation = Mathf.Atan2(-_move.x, _move.y)* Mathf.Rad2Deg;
-                // }
             }
 
-            if (Random.value < 0.02)
+
+            // Actions
+            float randomChance = Random.value;
+
+            if (_currentState == CharacterState.idle)
             {
-                Attack();
+                if (randomChance < 0.02)
+                {
+                    Attack();
+                }
+                else if (randomChance < 0.04)
+                {
+                    Dash();
+                }  
+                else if (randomChance < 0.06)
+                {
+                    Block();
+                }
+            }
+            else if (_currentState == CharacterState.block)
+            {
+                if (randomChance < 0.01)
+                {
+                    Unblock();
+                }
             }
         }
     }
@@ -347,12 +435,15 @@ public class Character : MonoBehaviour
         HP = MaxHP;
         _animator = GetComponent<Animator>();
         _gameInputs = new GameInputs();
+        _currentState = CharacterState.idle;
+        _botMovementState = BotMovementState.idle;
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {           
         UpdateGameInputs();
+        UpdateMovementBotState();
         AgentBehaviour(); 
         Move();
     }
