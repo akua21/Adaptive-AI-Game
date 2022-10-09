@@ -397,7 +397,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: _behaviour
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: _healthBar

@@ -120,7 +120,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99f00a91469182ac9834d86c03b9f5c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _attackDelay: 0.3
+  _attackDelay: 0.6
   _strength: 100
 --- !u!61 &5455731717360072220
 BoxCollider2D:
@@ -350,6 +350,8 @@ MonoBehaviour:
   _healthBar: {fileID: 0}
   _weapon: {fileID: 4650094125835358760}
   _shield: {fileID: 6012580596188670167}
+  _otherCharacter: {fileID: 0}
+  _randIntensityMove: 0
 --- !u!114 &7727284068055483492
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -4,10 +4,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
-public enum BehaviourEnum { player, bot };
+public enum BehaviourEnum { player, bot, botInputs };
 public enum CharacterState { idle, attack, block, dash, hitted, recoil };
 public enum BotMovementState { idle, follow, wander };
-
 
 public class GameInputs
 {
@@ -155,6 +154,11 @@ public class Character : MonoBehaviour
 
     // Point where the bot wanders
     private Vector2 _wanderingPoint;
+
+    // Mapping function for input bot
+    private float[] _chanceMap = new float[] {0.01f, 0.015f, 0.02f, 0.025f, 0.03f, 0.035f, 0.04f, 0.045f, 0.05f};
+
+
 
 
     // -------------------------------------------------
@@ -323,6 +327,8 @@ public class Character : MonoBehaviour
     // -------------------------------------------------
     // ----------------- Bot Behaviour -----------------
     // -------------------------------------------------
+
+    // Hardcoded Bot
     private void UpdateMovementBotState()
     {
         float randomChance = Random.value;
@@ -356,9 +362,107 @@ public class Character : MonoBehaviour
 
     }
 
-    private void AgentBehaviour()
+    // Harcoded Bot Actions
+    private void BotActions()
     {
-        if (_behaviour == BehaviourEnum.bot)
+        float randomChance = Random.value;
+
+        if (_currentState == CharacterState.idle)
+        {
+            if (randomChance < 0.02)
+            {
+                Attack();
+            }
+            else if (randomChance < 0.04)
+            {
+                Dash();
+            }  
+            else if (randomChance < 0.06)
+            {
+                Block();
+            }
+        }
+        else if (_currentState == CharacterState.block)
+        {
+            if (randomChance < 0.01)
+            {
+                Unblock();
+            }
+        }
+    }
+
+
+    // Hardcoded Bot that uses game inputs for decision making
+    private void UpdateMovementInputBotState()
+    {
+        float randomChance = Random.value;
+
+        if (_botMovementState == BotMovementState.idle)
+        {
+            if (_gameInputs.DistanceToPlayer > 1 && _gameInputs.DistanceToPlayer < 2)
+            {
+                _botMovementState = BotMovementState.follow;
+            }
+            else if (_gameInputs.DistanceToPlayer > 2)
+            {
+                _botMovementState = BotMovementState.wander;
+                _wanderingPoint = Random.insideUnitCircle * 8;
+            }
+        }
+        else if (_botMovementState == BotMovementState.follow)
+        {
+            if (_gameInputs.DistanceToPlayer < 1 || randomChance < 0.05)
+            {
+                _botMovementState = BotMovementState.idle;
+            }
+        }
+        else if (_botMovementState == BotMovementState.wander)
+        {
+            if (_gameInputs.DistanceToPlayer < 2 || randomChance < 0.05)
+            {
+                _botMovementState = BotMovementState.idle;
+            }
+        }
+    }
+
+    // Harcoded Bot that uses game inputs for decision making Actions
+    private void BotInputActions()
+    {
+        float randomChance = Random.value;
+
+        float attackChance = _chanceMap[_gameInputs.BotHP - _gameInputs.PlayerHP + 4];
+        float blockChance = _chanceMap[_gameInputs.PlayerHP - _gameInputs.BotHP + 4];
+        float dashChance = 0.1f;
+        float unblockChance = 0.02f;
+
+        if (_currentState == CharacterState.idle)
+        {
+            if (_gameInputs.DistanceToPlayer < 2 && randomChance < attackChance)
+            {
+                Attack();
+            }
+            else if (_gameInputs.DistanceToPlayer < 2 && randomChance < attackChance + blockChance)
+            {
+                Block();
+            }
+            else if (_gameInputs.DistanceToPlayer > 3 && randomChance < dashChance)
+            {
+                Dash();
+            }  
+        }
+        else if (_currentState == CharacterState.block)
+        {
+            if (_gameInputs.DistanceToPlayer > 2 || randomChance < unblockChance)
+            {
+                Unblock();
+            }
+        }
+    }
+
+
+
+    private void AgentMovement()
+    {
         {
             // Movement
             if (_botMovementState == BotMovementState.idle)
@@ -379,36 +483,14 @@ public class Character : MonoBehaviour
             {
                  _move.Normalize();
                 _rotation = Mathf.Atan2(-_move.x, _move.y)* Mathf.Rad2Deg;
-            }
-
-
-            // Actions
-            float randomChance = Random.value;
-
-            if (_currentState == CharacterState.idle)
-            {
-                if (randomChance < 0.02)
-                {
-                    Attack();
-                }
-                else if (randomChance < 0.04)
-                {
-                    Dash();
-                }  
-                else if (randomChance < 0.06)
-                {
-                    Block();
-                }
-            }
-            else if (_currentState == CharacterState.block)
-            {
-                if (randomChance < 0.01)
-                {
-                    Unblock();
-                }
-            }
+            }            
+            
         }
     }
+
+
+
+
 
     private void UpdateGameInputs() 
     {
@@ -418,8 +500,8 @@ public class Character : MonoBehaviour
             _gameInputs.BotHP = _hp;
             _gameInputs.DistanceToPlayer = Vector2.Distance(transform.position, _otherCharacter.transform.position);
             _gameInputs.DirectionToPlayer = _otherCharacter.transform.position - transform.position;
-            _gameInputs.PlayerState = _currentState;
-            _gameInputs.BotState = _otherCharacter.CurrentState;
+            _gameInputs.PlayerState = _otherCharacter.CurrentState;
+            _gameInputs.BotState = _currentState;
             _gameInputs.PlayerRotation = _otherCharacter.transform.eulerAngles.z;
             _gameInputs.BotRotation = transform.eulerAngles.z;
         }
@@ -442,9 +524,24 @@ public class Character : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {           
-        UpdateGameInputs();
-        UpdateMovementBotState();
-        AgentBehaviour(); 
+        if (_behaviour != BehaviourEnum.player)
+        {
+            UpdateGameInputs();
+            
+            if (_behaviour == BehaviourEnum.bot) 
+            {
+                UpdateMovementBotState();
+                BotActions();
+            }
+            else if (_behaviour == BehaviourEnum.botInputs)
+            {
+                UpdateMovementInputBotState();
+                BotInputActions();
+            }
+
+            AgentMovement(); 
+        }
+        
         Move();
     }
 
