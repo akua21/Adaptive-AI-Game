@@ -610,7 +610,10 @@ public class Character : MonoBehaviour
     private void GetHit(Vector3 direction, int strength)
     {
         HP -= 1;
-        _healthBar.UpdateHealthBar(HP, MaxHP);
+        if (_healthBar != null)
+        {
+            _healthBar.UpdateHealthBar(HP, MaxHP);
+        }
         StartCoroutine(IFrames(_iFramesHit));
 
         // Move in the opposite direction with certain strength
