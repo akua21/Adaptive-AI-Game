@@ -343,15 +343,17 @@ MonoBehaviour:
   _behaviour: 0
   _speed: 200
   _maxHp: 5
+  _numberLives: 2
   _iFramesHit: 0.5
   _dashIFrames: 0.1
-  _dashStrength: 1000
+  _dashStrength: 500
   _blockKnockback: 50
   _healthBar: {fileID: 0}
   _weapon: {fileID: 4650094125835358760}
   _shield: {fileID: 6012580596188670167}
-  _otherCharacter: {fileID: 0}
+  _otherCharacter: {fileID: 7199805085518765066}
   _randIntensityMove: 0
+  _studentID: 
 --- !u!114 &7727284068055483492
 MonoBehaviour:
   m_ObjectHideFlags: 0

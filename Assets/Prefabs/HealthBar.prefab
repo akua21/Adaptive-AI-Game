@@ -167,3 +167,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _healthBarImage: {fileID: 770454976155564290}
+  _emptyHeart: {fileID: 21300000, guid: bf592860955c2d1e2b090c97da752c85, type: 3}
+  _filledHeart: {fileID: 21300000, guid: 30c3dfa4800c27d349088404fc8cd7a0, type: 3}

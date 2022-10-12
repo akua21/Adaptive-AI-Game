@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -59,6 +60,11 @@ public class Character : MonoBehaviour
     [Header("Behaviour")]
     // Indicates if it can be controlled by the user
     [SerializeField] private BehaviourEnum _behaviour;
+    public BehaviourEnum Behaviour {
+        get {
+            return _behaviour;
+        }
+    }
 
     [Header("Characteristics")]
     // Character Speed
@@ -91,12 +97,36 @@ public class Character : MonoBehaviour
         }
         set {
             _hp = Mathf.Clamp(value, 0, MaxHP);
+            if (_healthBar != null)
+            {
+                _healthBar.UpdateHealthBar(HP, MaxHP);
+            }
             if (_hp == 0)
             {
                 Die();
             }
         }
     }
+
+    [SerializeField] private int _numberLives;
+    private int _currentLives;
+    public int CurrentLives {
+        get {
+            return _currentLives;
+        }
+        set {
+            _currentLives = Mathf.Clamp(value, 0, _numberLives);
+            
+            if (_currentLives == 0)
+            {
+                FinishGame();
+            }
+        }
+    }
+
+    private bool _isDead;
+
+    [SerializeField] private bool _isLeftPlayer;
 
     [Header("IFrames")]
     // Invulnerability frames after hit  in seconds
@@ -158,7 +188,27 @@ public class Character : MonoBehaviour
     // Mapping function for input bot
     private float[] _chanceMap = new float[] {0.01f, 0.015f, 0.02f, 0.025f, 0.03f, 0.035f, 0.04f, 0.045f, 0.05f};
 
+    // Position at the beginning
+    private Vector3 _initialPosition;
+    public Vector3 InitialPosition {
+        get {
+            return _initialPosition;
+        }
+        set {
+            _initialPosition = value;
+        }
+    }
 
+    [Header("Student ID")]
+    [SerializeField] private string _studentID;
+    private string _fileName;
+    public string FileName {
+        get {
+            return _fileName;
+        }
+    }
+
+    private float _startTimer;
 
 
     // -------------------------------------------------
@@ -515,34 +565,60 @@ public class Character : MonoBehaviour
     void Start()
     {
         HP = MaxHP;
+        CurrentLives = _numberLives;
         _animator = GetComponent<Animator>();
         _gameInputs = new GameInputs();
         _currentState = CharacterState.idle;
         _botMovementState = BotMovementState.idle;
+
+        _initialPosition = transform.position;
+
+        if (_studentID != "")
+        {
+            string path = Application.streamingAssetsPath + "/Metrics/";
+            _fileName = path + _studentID + ".csv";
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            if (!File.Exists(_fileName))
+            {
+                File.WriteAllText(_fileName, "time,bot,winner,winnerHP\n");
+            }
+        }
+
+        _startTimer = Time.time;
+        if (_healthBar != null) 
+        {
+            _healthBar.PlaceHearts(_isLeftPlayer, _numberLives);
+        }
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {           
-        if (_behaviour != BehaviourEnum.player)
+        if (!_otherCharacter._isDead || !_isDead)
         {
-            UpdateGameInputs();
-            
-            if (_behaviour == BehaviourEnum.bot) 
+            if (_behaviour != BehaviourEnum.player)
             {
-                UpdateMovementBotState();
-                BotActions();
-            }
-            else if (_behaviour == BehaviourEnum.botInputs)
-            {
-                UpdateMovementInputBotState();
-                BotInputActions();
-            }
+                UpdateGameInputs();
+                
+                if (_behaviour == BehaviourEnum.bot) 
+                {
+                    UpdateMovementBotState();
+                    BotActions();
+                }
+                else if (_behaviour == BehaviourEnum.botInputs)
+                {
+                    UpdateMovementInputBotState();
+                    BotInputActions();
+                }
 
-            AgentMovement(); 
+                AgentMovement(); 
+            }
+            
+            Move();
         }
-        
-        Move();
     }
 
     private void OnTriggerEnter2D(Collider2D other) 
@@ -610,10 +686,6 @@ public class Character : MonoBehaviour
     private void GetHit(Vector3 direction, int strength)
     {
         HP -= 1;
-        if (_healthBar != null)
-        {
-            _healthBar.UpdateHealthBar(HP, MaxHP);
-        }
         StartCoroutine(IFrames(_iFramesHit));
 
         // Move in the opposite direction with certain strength
@@ -637,6 +709,60 @@ public class Character : MonoBehaviour
     }
     
     private void Die()
+    {
+        _isDead = true;
+
+        CurrentLives -= 1;
+
+        WriteInFile();
+        _startTimer = Time.time;
+
+        StartCoroutine(StartNewMatch());
+
+        if (_healthBar != null)
+        {
+            _healthBar.LoseLive();
+        }
+    }
+
+    private IEnumerator StartNewMatch()
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        transform.position = _initialPosition;
+        _otherCharacter.transform.position = _otherCharacter.InitialPosition;
+        GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+        _otherCharacter.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+
+        yield return new WaitForSeconds(0.5f);
+
+        ResetCharacter();
+        _otherCharacter.ResetCharacter();
+    }
+
+    private void WriteInFile()
+    {
+        if (_fileName != null)
+        {
+            File.AppendAllText(_fileName, 
+                Time.time - _startTimer + "," + _otherCharacter.Behaviour + "," + _otherCharacter.Behaviour + "," + _otherCharacter.HP + "\n"
+            );
+        }
+        else if (_otherCharacter.FileName != null)
+        {
+            File.AppendAllText(_otherCharacter.FileName,
+                Time.time - _startTimer + "," + _behaviour + "," + _otherCharacter.Behaviour + "," + _otherCharacter.HP + "\n"
+            );
+        }
+    }
+
+    public void ResetCharacter()
+    {
+        _isDead = false;
+        HP = MaxHP;
+    }
+
+    private void FinishGame()
     {
         SceneManager.LoadScene(2);
     }
