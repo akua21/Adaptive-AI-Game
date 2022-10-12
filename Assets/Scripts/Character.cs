@@ -186,7 +186,7 @@ public class Character : MonoBehaviour
     private Vector2 _wanderingPoint;
 
     // Mapping function for input bot
-    private float[] _chanceMap = new float[] {0.01f, 0.015f, 0.02f, 0.025f, 0.03f, 0.035f, 0.04f, 0.045f, 0.05f};
+    private float[] _chanceMap = new float[] {0.0f, 0.01f, 0.015f, 0.02f, 0.025f, 0.03f, 0.035f, 0.04f, 0.045f, 0.05f, 0.0f};
 
     // Position at the beginning
     private Vector3 _initialPosition;
@@ -480,8 +480,8 @@ public class Character : MonoBehaviour
     {
         float randomChance = Random.value;
 
-        float attackChance = _chanceMap[_gameInputs.BotHP - _gameInputs.PlayerHP + 4];
-        float blockChance = _chanceMap[_gameInputs.PlayerHP - _gameInputs.BotHP + 4];
+        float attackChance = _chanceMap[_gameInputs.BotHP - _gameInputs.PlayerHP + 5];
+        float blockChance = _chanceMap[_gameInputs.PlayerHP - _gameInputs.BotHP + 5];
         float dashChance = 0.1f;
         float unblockChance = 0.02f;
 

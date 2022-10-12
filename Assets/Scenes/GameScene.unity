@@ -401,7 +401,7 @@ PrefabInstance:
       objectReference: {fileID: 138790715}
     - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: _numberLives
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: _otherCharacter
@@ -2292,7 +2292,7 @@ PrefabInstance:
       objectReference: {fileID: 2064635088}
     - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: _studentID
-      value: s212728
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: _dashIFrames
@@ -2300,7 +2300,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: _numberLives
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: _dashStrength
