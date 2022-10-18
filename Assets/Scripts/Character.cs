@@ -99,6 +99,8 @@ public class Character : MonoBehaviour
         }
     }
 
+    private bool _isDead;
+
     [Header("IFrames")]
     // Invulnerability frames after hit  in seconds
     [SerializeField] private float _iFramesHit; 
@@ -124,9 +126,20 @@ public class Character : MonoBehaviour
     [SerializeField] private Character _otherCharacter;
 
 
-    [Header("BOT")]
-    [SerializeField] private float _randIntensityMove;
+    [Header("BOT Movement")]
 
+    [Range(0,1)] [SerializeField] private float _probIdleToFollow;
+    [Range(0,1)] [SerializeField] private float _probIdleToWander;
+    [Range(0,1)] [SerializeField] private float _probFollowToIdle;
+    [Range(0,1)] [SerializeField] private float _probWanderToIdle;
+
+
+    [Header("BOT Actions")]
+
+    [Range(0,1)] [SerializeField] private float _probAttack;
+    [Range(0,1)] [SerializeField] private float _probDash;
+    [Range(0,1)] [SerializeField] private float _probBlock;
+    [Range(0,1)] [SerializeField] private float _probUnblock;
 
     // No SerializeField
     // Character movement and rotation
@@ -155,6 +168,17 @@ public class Character : MonoBehaviour
 
     // Point where the bot wanders
     private Vector2 _wanderingPoint;
+    // In case of not being centered on 0, 0, for the
+    // wander behaviour to make sense
+    private Vector2 _centerPoint;
+    public Vector2 CenterPoint {
+        get {
+            return _centerPoint;
+        }
+        set {
+            _centerPoint = value;
+        }
+    }
 
 
     // -------------------------------------------------
@@ -329,26 +353,26 @@ public class Character : MonoBehaviour
 
         if (_botMovementState == BotMovementState.idle)
         {
-            if (randomChance < 0.07)
+            if (randomChance < _probIdleToFollow)
             {
                 _botMovementState = BotMovementState.follow;
             }
-            else if (randomChance < 0.1)
+            else if (randomChance < _probIdleToFollow + _probIdleToWander)
             {
                 _botMovementState = BotMovementState.wander;
-                _wanderingPoint = Random.insideUnitCircle * 8;
+                _wanderingPoint = Random.insideUnitCircle * 8 + _centerPoint;
             }
         }
         else if (_botMovementState == BotMovementState.follow)
         {
-            if (randomChance < 0.1)
+            if (randomChance < _probFollowToIdle)
             {
                 _botMovementState = BotMovementState.idle;
             }
         }
         else if (_botMovementState == BotMovementState.wander)
         {
-            if (randomChance < 0.1)
+            if (randomChance < _probWanderToIdle)
             {
                 _botMovementState = BotMovementState.idle;
             }
@@ -387,22 +411,22 @@ public class Character : MonoBehaviour
 
             if (_currentState == CharacterState.idle)
             {
-                if (randomChance < 0.02)
+                if (randomChance < _probAttack)
                 {
                     Attack();
                 }
-                else if (randomChance < 0.04)
+                else if (randomChance < _probAttack + _probDash)
                 {
                     Dash();
                 }  
-                else if (randomChance < 0.06)
+                else if (randomChance < _probAttack + _probDash + _probBlock)
                 {
                     Block();
                 }
             }
             else if (_currentState == CharacterState.block)
             {
-                if (randomChance < 0.01)
+                if (randomChance < _probUnblock)
                 {
                     Unblock();
                 }
@@ -426,13 +450,46 @@ public class Character : MonoBehaviour
     }  
 
     // -------------------------------------------------
+    // ------------------ Instantiate ------------------
+    // -------------------------------------------------
+
+    public void Init(BehaviourEnum behaviour)
+    {
+        _behaviour = behaviour;
+    }
+
+    public void Init(
+        float probIdleToFollow,
+        float probIdleToWander,
+        float probFollowToIdle,
+        float probWanderToIdle,
+        float probAttack,
+        float probDash,
+        float probBlock,
+        float probUnblock
+    )
+    {
+        _behaviour = BehaviourEnum.bot;
+
+        _probIdleToFollow = probIdleToFollow;
+        _probIdleToWander = probIdleToWander;
+        _probFollowToIdle = probFollowToIdle;
+        _probWanderToIdle = probWanderToIdle;
+        _probAttack = probAttack;
+        _probDash = probDash;
+        _probBlock = probBlock;
+        _probUnblock = probUnblock;
+    }
+
+    // -------------------------------------------------
     // -------------------- Generics -------------------
     // -------------------------------------------------
+ 
 
     // Start is called before the first frame update
     void Start()
     {
-        HP = MaxHP;
+        _hp = _maxHp;
         _animator = GetComponent<Animator>();
         _gameInputs = new GameInputs();
         _currentState = CharacterState.idle;
@@ -441,11 +498,14 @@ public class Character : MonoBehaviour
 
     // Update is called once per frame
     void FixedUpdate()
-    {           
-        UpdateGameInputs();
-        UpdateMovementBotState();
-        AgentBehaviour(); 
-        Move();
+    {   
+        if (!_otherCharacter._isDead || !_isDead)
+        {
+            UpdateGameInputs();
+            UpdateMovementBotState();
+            AgentBehaviour(); 
+            Move();
+        }        
     }
 
     private void OnTriggerEnter2D(Collider2D other) 
@@ -539,8 +599,21 @@ public class Character : MonoBehaviour
         StateToIdle();
     }
     
-    private void Die()
+    public void Die()
     {
-        SceneManager.LoadScene(2);
+        // SceneManager.LoadScene(2);
+        // Debug.Log("dead");
+        _isDead = true;
+    }
+
+    public void ResetCharacter()
+    {
+        _isDead = false;
+        _hp = _maxHp;
+    }
+
+    public void ChangeEnemyCharacter(Character otherCharacter)
+    {
+        _otherCharacter = otherCharacter;
     }
 }
