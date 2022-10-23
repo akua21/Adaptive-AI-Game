@@ -352,6 +352,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "HideLoading",
+                    "type": "Button",
+                    "id": "013f673c-e038-4721-982c-5f77c38afb7a",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -462,6 +471,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "ZoomOut",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "eeb83844-2810-48b7-9482-ace7fa413cfc",
+                    "path": "<Keyboard>/h",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "HideLoading",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

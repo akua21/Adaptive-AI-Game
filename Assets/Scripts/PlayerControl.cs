@@ -374,6 +374,15 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""HideLoading"",
+                    ""type"": ""Button"",
+                    ""id"": ""013f673c-e038-4721-982c-5f77c38afb7a"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -486,6 +495,17 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
                     ""action"": ""ZoomOut"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""eeb83844-2810-48b7-9482-ace7fa413cfc"",
+                    ""path"": ""<Keyboard>/h"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HideLoading"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -531,6 +551,7 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
         m_CameraControl_MoveCamera = m_CameraControl.FindAction("MoveCamera", throwIfNotFound: true);
         m_CameraControl_ZoomIn = m_CameraControl.FindAction("ZoomIn", throwIfNotFound: true);
         m_CameraControl_ZoomOut = m_CameraControl.FindAction("ZoomOut", throwIfNotFound: true);
+        m_CameraControl_HideLoading = m_CameraControl.FindAction("HideLoading", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -699,6 +720,7 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
     private readonly InputAction m_CameraControl_MoveCamera;
     private readonly InputAction m_CameraControl_ZoomIn;
     private readonly InputAction m_CameraControl_ZoomOut;
+    private readonly InputAction m_CameraControl_HideLoading;
     public struct CameraControlActions
     {
         private @PlayerControl m_Wrapper;
@@ -706,6 +728,7 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
         public InputAction @MoveCamera => m_Wrapper.m_CameraControl_MoveCamera;
         public InputAction @ZoomIn => m_Wrapper.m_CameraControl_ZoomIn;
         public InputAction @ZoomOut => m_Wrapper.m_CameraControl_ZoomOut;
+        public InputAction @HideLoading => m_Wrapper.m_CameraControl_HideLoading;
         public InputActionMap Get() { return m_Wrapper.m_CameraControl; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -724,6 +747,9 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
                 @ZoomOut.started -= m_Wrapper.m_CameraControlActionsCallbackInterface.OnZoomOut;
                 @ZoomOut.performed -= m_Wrapper.m_CameraControlActionsCallbackInterface.OnZoomOut;
                 @ZoomOut.canceled -= m_Wrapper.m_CameraControlActionsCallbackInterface.OnZoomOut;
+                @HideLoading.started -= m_Wrapper.m_CameraControlActionsCallbackInterface.OnHideLoading;
+                @HideLoading.performed -= m_Wrapper.m_CameraControlActionsCallbackInterface.OnHideLoading;
+                @HideLoading.canceled -= m_Wrapper.m_CameraControlActionsCallbackInterface.OnHideLoading;
             }
             m_Wrapper.m_CameraControlActionsCallbackInterface = instance;
             if (instance != null)
@@ -737,6 +763,9 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
                 @ZoomOut.started += instance.OnZoomOut;
                 @ZoomOut.performed += instance.OnZoomOut;
                 @ZoomOut.canceled += instance.OnZoomOut;
+                @HideLoading.started += instance.OnHideLoading;
+                @HideLoading.performed += instance.OnHideLoading;
+                @HideLoading.canceled += instance.OnHideLoading;
             }
         }
     }
@@ -777,5 +806,6 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
         void OnMoveCamera(InputAction.CallbackContext context);
         void OnZoomIn(InputAction.CallbackContext context);
         void OnZoomOut(InputAction.CallbackContext context);
+        void OnHideLoading(InputAction.CallbackContext context);
     }
 }

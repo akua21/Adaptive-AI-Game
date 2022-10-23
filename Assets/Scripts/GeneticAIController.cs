@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-
+using UnityEngine.UI;
 
 public class Individual
 {
@@ -39,14 +39,48 @@ public class Individual
         Score = 0;
     }
 
-    public Individual(Character character, Character parent1, Character parent2)
+    public Individual(Character character, Individual parent1, Individual parent2)
     {
 
+        Genes = new float[8] {
+            (parent1.Genes[0] + parent2.Genes[0]) / 2 + Random.value * 0.2f - 0.1f,
+            (parent1.Genes[1] + parent2.Genes[1]) / 2 + Random.value * 0.2f - 0.1f,
+            (parent1.Genes[2] + parent2.Genes[2]) / 2 + Random.value * 0.2f - 0.1f,
+            (parent1.Genes[3] + parent2.Genes[3]) / 2 + Random.value * 0.2f - 0.1f,
+            (parent1.Genes[4] + parent2.Genes[4]) / 2 + Random.value * 0.2f - 0.1f,
+            (parent1.Genes[5] + parent2.Genes[5]) / 2 + Random.value * 0.2f - 0.1f,
+            (parent1.Genes[6] + parent2.Genes[6]) / 2 + Random.value * 0.2f - 0.1f,
+            (parent1.Genes[7] + parent2.Genes[7]) / 2 + Random.value * 0.2f - 0.1f
+        };
+
+        Bot = character;
+        Bot.Init(
+            Genes[0],
+            Genes[1],
+            Genes[2],
+            Genes[3],
+            Genes[4],
+            Genes[5],
+            Genes[6],
+            Genes[7]
+        );
+
+        Score = 0;
     }
 
-    public void AddScore(int addedValue)
+    public override string ToString()
     {
-        Score += addedValue;
+        string text = "{Score: " + Score.ToString() + ", Genes: [";
+
+
+        for (int i = 0; i < 7; i++)
+        {
+            text += Genes[i].ToString() + ", ";
+        }
+
+        text += Genes[7].ToString() + "]}";
+
+        return text;
     }
 }
 
@@ -61,11 +95,17 @@ public class GeneticAIController : MonoBehaviour
     [Header("Camera")]
     [SerializeField] private Camera _camera;
 
-    [Header("Battles configuration")]
-    [SerializeField] private int _numberBattles;
-    [SerializeField] float _battleTimeLimit;
-    [SerializeField] int _numberRounds;
+    [Header("Canvas")]
+    [SerializeField] private GameObject _canvas;
+    [SerializeField] private Image _loadingBar;
 
+    [Header("Battles configuration")]
+    [SerializeField] private int _numberGenerations; // Number of generations
+    [SerializeField] private int _numberRounds; // Number of rounds in a generation
+    [SerializeField] private float _battleTimeLimit;
+    [SerializeField] private int _numberBattles; // Number of simultaneous battles
+
+    private int _numberFinishedRounds;
     private List<BattleArena> _mapList;
     private List<Individual> _population;
 
@@ -86,6 +126,7 @@ public class GeneticAIController : MonoBehaviour
 
         if (ctx.performed && cameraInput != new Vector2(0, 0))
         {
+            _canvas.SetActive(false);
             if (Mathf.Abs(cameraInput.x) > Mathf.Abs(cameraInput.y))
             {
                 _camera.transform.position = new Vector3(
@@ -109,6 +150,7 @@ public class GeneticAIController : MonoBehaviour
         if (ctx.performed && _camera.orthographicSize >= 5)
         {
             _camera.orthographicSize -= 5;
+            _canvas.SetActive(false);
         }
     }
 
@@ -117,7 +159,26 @@ public class GeneticAIController : MonoBehaviour
         if (ctx.performed)
         {
             _camera.orthographicSize += 5;
+            _canvas.SetActive(false);
         }
+    }
+
+    public void OnHide(InputAction.CallbackContext ctx)
+    {
+        if (ctx.performed)
+        {
+            _canvas.SetActive(!_canvas.activeSelf);
+            if (_canvas.activeSelf)
+            {
+                _camera.orthographicSize = 5;        
+                _camera.transform.position = new Vector3(0, 0, _camera.transform.position.z);
+            }
+        }
+    }
+
+    public void OnLoadingUpdate() {
+        _numberFinishedRounds += 1;
+        _loadingBar.fillAmount = (float)_numberFinishedRounds / (float)(_numberGenerations * _numberRounds);
     }
 
     private void Update()
@@ -128,7 +189,33 @@ public class GeneticAIController : MonoBehaviour
     private IEnumerator BattleTimer()
     {
 
-        for (int i = 0; i < _numberRounds; i++)
+        for (int i = 0; i < _numberGenerations-1; i++)
+        {
+            for (int j = 0; j < _numberRounds; j++)
+            {
+
+                MixPlayers();
+                ResetPlayers();
+
+                yield return new WaitForSeconds(_battleTimeLimit);
+
+                Debug.Log("FINISH BATTLE " + j.ToString() + " of ROUND " + i.ToString());
+                foreach (Individual individual in _population)
+                {
+                    individual.Bot.Die();
+                }
+
+                EvaluatePopulation();
+                OnLoadingUpdate();
+            }
+            NewGeneration();
+        }
+
+        Debug.Log("---"); 
+        Debug.Log("FINAL BATTLE");
+        Debug.Log("---");
+
+        for (int j = 0; j < _numberRounds; j++)
         {
 
             MixPlayers();
@@ -136,14 +223,31 @@ public class GeneticAIController : MonoBehaviour
 
             yield return new WaitForSeconds(_battleTimeLimit);
 
-            Debug.Log("FINISH BATTLE " + i.ToString());
+            Debug.Log("FINISH BATTLE " + j.ToString() + " of the LAST ROUND");
             foreach (Individual individual in _population)
             {
                 individual.Bot.Die();
             }
 
             EvaluatePopulation();
+            OnLoadingUpdate();
         }
+        DisplayBestBot();
+    }
+
+    private void DisplayBestBot()
+    {
+        Individual bestIndividual = _population[0];
+
+        foreach (Individual individual in _population)
+        {
+            if (individual.Score > bestIndividual.Score)
+            {
+                bestIndividual = individual;
+            }
+        }
+
+        Debug.Log(bestIndividual.ToString());
     }
 
     private void StartUpSimulation()
@@ -212,11 +316,12 @@ public class GeneticAIController : MonoBehaviour
     private void EvaluatePopulation()
     {
         for (int i = 0; i < _numberBattles; i++)
-        {
+        {   
             int score = _population[2*i].Bot.HP - _population[2*i+1].Bot.HP;
 
-            _population[2*i].AddScore(score);
-            _population[2*i+1].AddScore(-score);
+            //  +6 so it is always a positive number
+            _population[2*i].Score += score + 6;
+            _population[2*i+1].Score += -score + 6;
         }
     }
 
@@ -251,9 +356,9 @@ public class GeneticAIController : MonoBehaviour
                     _population[2*arenaCount+1].Bot.ResetCharacter();
 
                     // Set position
-                    _population[2*arenaCount].Bot.transform.position = _mapList[arenaCount].transform.position - new Vector3(-2, 0, 0);
+                    _population[2*arenaCount].Bot.transform.position = _mapList[arenaCount].transform.position + new Vector3(-2, 0, -1);
 
-                    _population[2*arenaCount+1].Bot.transform.position = _mapList[arenaCount].transform.position - new Vector3(+2, 0, 0);
+                    _population[2*arenaCount+1].Bot.transform.position = _mapList[arenaCount].transform.position + new Vector3(+2, 0, -1);
 
                     // Put the center point in the correct position
                     _population[2*arenaCount].Bot.CenterPoint = _mapList[arenaCount].transform.position;
@@ -270,18 +375,56 @@ public class GeneticAIController : MonoBehaviour
         }
     }
 
-    // private float FitnessFunction(Character char)
-    // {
-    //     return 0.0f
-    // }
+    private void NewGeneration() {
 
-    // private Character Crossing(Character p1, Character p2)
-    // {
+        // Calculate the total ammount of score
+        int rouletteSize = 0;
 
-    // }
+        foreach (Individual individual in _population)
+        {
+            rouletteSize += individual.Score;
+        }
 
-    // private Character Mutation(Character char)
-    // {
+        Individual[] roulette = new Individual[rouletteSize];
 
-    // }
+        int roulettePos = 0;
+
+        // Create roulette so better individuals occupy more space
+        foreach (Individual individual in _population)
+        {
+            for (int i = 0; i < individual.Score; i++)
+            {
+                roulette[roulettePos] = individual;
+                roulettePos += 1;
+            }
+        }
+
+        List<Individual> newPopulation = new List<Individual>();
+
+
+        for (int i = 0; i < _population.Count; i++)
+        {
+            Individual p1 = roulette[Random.Range(0, rouletteSize)];
+            Individual p2 = roulette[Random.Range(0, rouletteSize)];
+
+            GameObject childGameObject = Instantiate(
+                _characterPrefab,
+                new Vector3(0, 0, 0),
+                Quaternion.identity
+            );
+            Character child = childGameObject.GetComponent<Character>();
+
+            // Add to population
+            Individual childIndividual = new Individual(child, p1, p2);
+            newPopulation.Add((childIndividual));
+        }
+
+        // Destroy previous population
+        foreach (Individual individual in _population)
+        {
+            Destroy(individual.Bot.gameObject);
+        }
+
+        _population = newPopulation;
+    }
 }
