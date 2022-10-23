@@ -33,9 +33,11 @@ public class Individual
             Genes[4],
             Genes[5],
             Genes[6],
-            Genes[7]
+            Genes[7],
+            true
         );
 
+    
         Score = 0;
     }
 
@@ -62,7 +64,8 @@ public class Individual
             Genes[4],
             Genes[5],
             Genes[6],
-            Genes[7]
+            Genes[7],
+            true
         );
 
         Score = 0;

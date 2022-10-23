@@ -382,7 +382,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: _behaviour
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: _healthBar
@@ -390,7 +390,7 @@ PrefabInstance:
       objectReference: {fileID: 138790715}
     - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: _numberLives
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: _otherCharacter
@@ -1161,6 +1161,17 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c23f460097466e83eb1038f6e244f30e, type: 3}
+--- !u!114 &1307213101 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
+  m_PrefabInstance: {fileID: 339498083}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44314b82ec4102b61a54b2a5d2e09f81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1360603903 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
@@ -1202,7 +1213,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Player: {fileID: 1360603903}
-  Bot: {fileID: 270917854}
+  Bot: {fileID: 1307213101}
 --- !u!4 &1534142588
 Transform:
   m_ObjectHideFlags: 0
@@ -2161,7 +2172,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: _numberLives
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: _dashStrength
@@ -2174,7 +2185,7 @@ PrefabInstance:
     - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: _otherCharacter
       value: 
-      objectReference: {fileID: 270917854}
+      objectReference: {fileID: 1307213101}
     - target: {fileID: 7199805085518765301, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: m_RootOrder
       value: 2

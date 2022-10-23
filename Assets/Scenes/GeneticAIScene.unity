@@ -678,9 +678,9 @@ MonoBehaviour:
   _loadingBar: {fileID: 1194328784}
   _numberGenerations: 10
   _numberRounds: 5
-  _battleTimeLimit: 15
-  _numberBattles: 25
-  _timeScale: 10
+  _battleTimeLimit: 5
+  _numberBattles: 4
+  _timeScale: 1
 --- !u!4 &1761350325
 Transform:
   m_ObjectHideFlags: 0

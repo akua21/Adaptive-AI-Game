@@ -5,56 +5,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
-public enum BehaviourEnum { player, bot, botInputs };
-public enum CharacterState { idle, attack, block, dash, hitted, recoil };
-public enum BotMovementState { idle, follow, wander };
-
-public class GameInputs
-{
-    public int PlayerHP { get; set; }
-    public int BotHP { get; set; }
-    public float DistanceToPlayer { get; set; }
-    public Vector2 DirectionToPlayer { get; set; }
-    public CharacterState PlayerState { get; set; }
-    public CharacterState BotState { get; set; }
-    public float PlayerRotation { get; set; }
-    public float BotRotation { get; set; }
-
-    public GameInputs()
-    {
-        PlayerHP = 0;
-        BotHP = 0;
-        DistanceToPlayer = 0f;
-        DirectionToPlayer = new Vector2(0, 0);
-        PlayerState = CharacterState.idle;
-        BotState = CharacterState.idle;
-        PlayerRotation = 0f;
-        BotRotation = 0f;
-    }
-
-    public GameInputs(
-        int playerHP,
-        int botHP,
-        float distanceToPlayer,
-        Vector2 directionToPlayer,
-        CharacterState playerState,
-        CharacterState botState,
-        float playerRotation,
-        float botRotation
-    )
-    {
-        PlayerHP = playerHP;
-        BotHP = botHP;
-        DistanceToPlayer = distanceToPlayer;
-        DirectionToPlayer = directionToPlayer;
-        PlayerState = playerState;
-        BotState = botState;
-        PlayerRotation = playerRotation;
-        BotRotation = botRotation;
-    }
-
-}
-
 public class Character : MonoBehaviour
 {
     [Header("Behaviour")]
@@ -117,7 +67,7 @@ public class Character : MonoBehaviour
         set {
             _currentLives = Mathf.Clamp(value, 0, _numberLives);
             
-            if (_currentLives == 0)
+            if (_currentLives == 0 && !_isTraining)
             {
                 FinishGame();
             }
@@ -161,21 +111,16 @@ public class Character : MonoBehaviour
         }
     }
 
+    // Bot probs / genes
+    private float _probIdleToFollow;
+    private float _probIdleToWander;
+    private float _probFollowToIdle;
+    private float _probWanderToIdle;
 
-    [Header("BOT Movement")]
-
-    [Range(0,1)] [SerializeField] private float _probIdleToFollow;
-    [Range(0,1)] [SerializeField] private float _probIdleToWander;
-    [Range(0,1)] [SerializeField] private float _probFollowToIdle;
-    [Range(0,1)] [SerializeField] private float _probWanderToIdle;
-
-
-    [Header("BOT Actions")]
-
-    [Range(0,1)] [SerializeField] private float _probAttack;
-    [Range(0,1)] [SerializeField] private float _probDash;
-    [Range(0,1)] [SerializeField] private float _probBlock;
-    [Range(0,1)] [SerializeField] private float _probUnblock;
+    private float _probAttack;
+    private float _probDash;
+    private float _probBlock;
+    private float _probUnblock;
 
     // No SerializeField
     // Character movement and rotation
@@ -448,28 +393,28 @@ public class Character : MonoBehaviour
     {
         float randomChance = Random.value;
 
-        if (_currentState == CharacterState.idle)
-        {
-            if (randomChance < 0.02)
+            if (_currentState == CharacterState.idle)
             {
-                Attack();
+                if (randomChance < _probAttack)
+                {
+                    Attack();
+                }
+                else if (randomChance < _probAttack + _probDash)
+                {
+                    Dash();
+                }  
+                else if (randomChance < _probAttack + _probDash + _probBlock)
+                {
+                    Block();
+                }
             }
-            else if (randomChance < 0.04)
+            else if (_currentState == CharacterState.block)
             {
-                Dash();
-            }  
-            else if (randomChance < 0.06)
-            {
-                Block();
+                if (randomChance < _probUnblock)
+                {
+                    Unblock();
+                }
             }
-        }
-        else if (_currentState == CharacterState.block)
-        {
-            if (randomChance < 0.01)
-            {
-                Unblock();
-            }
-        }
     }
 
 
@@ -564,34 +509,7 @@ public class Character : MonoBehaviour
             {
                  _move.Normalize();
                 _rotation = Mathf.Atan2(-_move.x, _move.y)* Mathf.Rad2Deg;
-            }
-
-
-            // Actions
-            float randomChance = Random.value;
-
-            if (_currentState == CharacterState.idle)
-            {
-                if (randomChance < _probAttack)
-                {
-                    Attack();
-                }
-                else if (randomChance < _probAttack + _probDash)
-                {
-                    Dash();
-                }  
-                else if (randomChance < _probAttack + _probDash + _probBlock)
-                {
-                    Block();
-                }
-            }
-            else if (_currentState == CharacterState.block)
-            {
-                if (randomChance < _probUnblock)
-                {
-                    Unblock();
-                }
-            }
+            }            
         }
     }
 
@@ -631,7 +549,8 @@ public class Character : MonoBehaviour
         float probAttack,
         float probDash,
         float probBlock,
-        float probUnblock
+        float probUnblock,
+        bool isTraining
     )
     {
         _behaviour = BehaviourEnum.bot;
@@ -645,7 +564,7 @@ public class Character : MonoBehaviour
         _probBlock = probBlock;
         _probUnblock = probUnblock;
         
-        _isTraining = true;
+        _isTraining = isTraining;
     }
 
     // -------------------------------------------------
@@ -683,6 +602,15 @@ public class Character : MonoBehaviour
         if (_healthBar != null) 
         {
             _healthBar.PlaceHearts(_isLeftPlayer, _numberLives);
+        }
+
+        if (_behaviour == BehaviourEnum.bot && !_isTraining)
+        {
+            float[] genes = MatchController.CurrentGenes;
+            if (genes != null)
+            {
+                Init(genes[0], genes[1], genes[2], genes[3], genes[4], genes[5], genes[6], genes[7], false);
+            }
         }
     }
 
@@ -804,24 +732,38 @@ public class Character : MonoBehaviour
     {
         _isDead = true;
 
-        CurrentLives -= 1;
-
-        WriteInFile();
-        _startTimer = Time.time;
         if (!_isTraining)
         {
+            CurrentLives -= 1;
+
+            WriteInFile();
+            _startTimer = Time.time;
             StartCoroutine(StartNewMatch());
+
+            if (_healthBar != null)
+            {
+                _healthBar.LoseLive();
+            }
         }
 
-        if (_healthBar != null)
-        {
-            _healthBar.LoseLive();
-        }
     }
 
     private IEnumerator StartNewMatch()
     {
         yield return new WaitForSeconds(0.5f);
+        if (MatchController.WarmUp)
+        {
+            // THE PLAYER WON -> THE BOT DIED
+            if (_behaviour == BehaviourEnum.bot)
+            {
+                MatchController.CurrentDifficulty += 1;
+            }
+            // THE BOT WON -> THE PLAYER DIED
+            else if (_behaviour == BehaviourEnum.player)
+            {
+                MatchController.CurrentDifficulty -= 1;
+            }
+        }
 
         transform.position = _initialPosition;
         _otherCharacter.transform.position = _otherCharacter.InitialPosition;
@@ -858,7 +800,8 @@ public class Character : MonoBehaviour
 
     private void FinishGame()
     {
-        // SceneManager.LoadScene(2);
+        MatchController.UpdateWarmUp(false);
+        SceneManager.LoadScene(2);
     }
 
     public void ChangeEnemyCharacter(Character otherCharacter)

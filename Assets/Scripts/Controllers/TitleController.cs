@@ -15,6 +15,8 @@ public class TitleController : MonoBehaviour
 
     private void OnPlayButton()
     {
+        MatchController.CurrentDifficulty = 0;
+        MatchController.UpdateWarmUp(true);
         StartCoroutine(ChangeScene(1));
     }
 
