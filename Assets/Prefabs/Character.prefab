@@ -354,6 +354,14 @@ MonoBehaviour:
   _otherCharacter: {fileID: 7199805085518765066}
   _randIntensityMove: 0
   _studentID: 
+  _probIdleToFollow: 0.07
+  _probIdleToWander: 0.03
+  _probFollowToIdle: 0.1
+  _probWanderToIdle: 0.1
+  _probAttack: 0.02
+  _probDash: 0.02
+  _probBlock: 0.02
+  _probUnblock: 0.01
 --- !u!114 &7727284068055483492
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -467,6 +475,18 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 29318e7d-3f57-45a0-bc94-74ca22d20e63
     m_ActionName: Menu/Move[/Gamepad/leftStick,/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 442cbb77-e2d7-4489-9d7e-265212662e84
+    m_ActionName: CameraControl/MoveCamera[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: e33492f3-95c6-4833-8281-bf91f4db5781
+    m_ActionName: CameraControl/ZoomIn[/Keyboard/enter]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: d3170e54-0a75-4818-b4d8-897c78820fb8
+    m_ActionName: CameraControl/ZoomOut[/Keyboard/backspace]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: Player 1
   m_DefaultActionMap: Gameplay

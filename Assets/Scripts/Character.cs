@@ -153,9 +153,20 @@ public class Character : MonoBehaviour
     [SerializeField] private Character _otherCharacter;
 
 
-    [Header("BOT")]
-    [SerializeField] private float _randIntensityMove;
+    [Header("BOT Movement")]
 
+    [Range(0,1)] [SerializeField] private float _probIdleToFollow;
+    [Range(0,1)] [SerializeField] private float _probIdleToWander;
+    [Range(0,1)] [SerializeField] private float _probFollowToIdle;
+    [Range(0,1)] [SerializeField] private float _probWanderToIdle;
+
+
+    [Header("BOT Actions")]
+
+    [Range(0,1)] [SerializeField] private float _probAttack;
+    [Range(0,1)] [SerializeField] private float _probDash;
+    [Range(0,1)] [SerializeField] private float _probBlock;
+    [Range(0,1)] [SerializeField] private float _probUnblock;
 
     // No SerializeField
     // Character movement and rotation
@@ -184,6 +195,17 @@ public class Character : MonoBehaviour
 
     // Point where the bot wanders
     private Vector2 _wanderingPoint;
+    // In case of not being centered on 0, 0, for the
+    // wander behaviour to make sense
+    private Vector2 _centerPoint;
+    public Vector2 CenterPoint {
+        get {
+            return _centerPoint;
+        }
+        set {
+            _centerPoint = value;
+        }
+    }
 
     // Mapping function for input bot
     private float[] _chanceMap = new float[] {0.0f, 0.01f, 0.015f, 0.02f, 0.025f, 0.03f, 0.035f, 0.04f, 0.045f, 0.05f, 0.0f};
@@ -385,26 +407,26 @@ public class Character : MonoBehaviour
 
         if (_botMovementState == BotMovementState.idle)
         {
-            if (randomChance < 0.07)
+            if (randomChance < _probIdleToFollow)
             {
                 _botMovementState = BotMovementState.follow;
             }
-            else if (randomChance < 0.1)
+            else if (randomChance < _probIdleToFollow + _probIdleToWander)
             {
                 _botMovementState = BotMovementState.wander;
-                _wanderingPoint = Random.insideUnitCircle * 8;
+                _wanderingPoint = Random.insideUnitCircle * 8 + _centerPoint;
             }
         }
         else if (_botMovementState == BotMovementState.follow)
         {
-            if (randomChance < 0.1)
+            if (randomChance < _probFollowToIdle)
             {
                 _botMovementState = BotMovementState.idle;
             }
         }
         else if (_botMovementState == BotMovementState.wander)
         {
-            if (randomChance < 0.1)
+            if (randomChance < _probWanderToIdle)
             {
                 _botMovementState = BotMovementState.idle;
             }
@@ -533,8 +555,34 @@ public class Character : MonoBehaviour
             {
                  _move.Normalize();
                 _rotation = Mathf.Atan2(-_move.x, _move.y)* Mathf.Rad2Deg;
-            }            
-            
+            }
+
+
+            // Actions
+            float randomChance = Random.value;
+
+            if (_currentState == CharacterState.idle)
+            {
+                if (randomChance < _probAttack)
+                {
+                    Attack();
+                }
+                else if (randomChance < _probAttack + _probDash)
+                {
+                    Dash();
+                }  
+                else if (randomChance < _probAttack + _probDash + _probBlock)
+                {
+                    Block();
+                }
+            }
+            else if (_currentState == CharacterState.block)
+            {
+                if (randomChance < _probUnblock)
+                {
+                    Unblock();
+                }
+            }
         }
     }
 
@@ -558,8 +606,41 @@ public class Character : MonoBehaviour
     }  
 
     // -------------------------------------------------
+    // ------------------ Instantiate ------------------
+    // -------------------------------------------------
+
+    public void Init(BehaviourEnum behaviour)
+    {
+        _behaviour = behaviour;
+    }
+
+    public void Init(
+        float probIdleToFollow,
+        float probIdleToWander,
+        float probFollowToIdle,
+        float probWanderToIdle,
+        float probAttack,
+        float probDash,
+        float probBlock,
+        float probUnblock
+    )
+    {
+        _behaviour = BehaviourEnum.bot;
+
+        _probIdleToFollow = probIdleToFollow;
+        _probIdleToWander = probIdleToWander;
+        _probFollowToIdle = probFollowToIdle;
+        _probWanderToIdle = probWanderToIdle;
+        _probAttack = probAttack;
+        _probDash = probDash;
+        _probBlock = probBlock;
+        _probUnblock = probUnblock;
+    }
+
+    // -------------------------------------------------
     // -------------------- Generics -------------------
     // -------------------------------------------------
+ 
 
     // Start is called before the first frame update
     void Start()
@@ -708,7 +789,7 @@ public class Character : MonoBehaviour
         StateToIdle();
     }
     
-    private void Die()
+    public void Die()
     {
         _isDead = true;
 
@@ -765,5 +846,10 @@ public class Character : MonoBehaviour
     private void FinishGame()
     {
         SceneManager.LoadScene(2);
+    }
+
+    public void ChangeEnemyCharacter(Character otherCharacter)
+    {
+        _otherCharacter = otherCharacter;
     }
 }
