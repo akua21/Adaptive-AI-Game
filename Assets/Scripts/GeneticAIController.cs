@@ -364,7 +364,6 @@ public class GeneticAIController : MonoBehaviour
                     _population[2*arenaCount].Bot.CenterPoint = _mapList[arenaCount].transform.position;
                     _population[2*arenaCount+1].Bot.CenterPoint = _mapList[arenaCount].transform.position;
 
-
                     // Make them enemies
                     _population[2*arenaCount].Bot.ChangeEnemyCharacter(_population[2*arenaCount+1].Bot);
                     _population[2*arenaCount+1].Bot.ChangeEnemyCharacter(_population[2*arenaCount].Bot);

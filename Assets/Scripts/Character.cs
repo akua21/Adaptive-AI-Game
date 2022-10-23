@@ -125,6 +125,7 @@ public class Character : MonoBehaviour
     }
 
     private bool _isDead;
+    private bool _isTraining;
 
     [SerializeField] private bool _isLeftPlayer;
 
@@ -151,6 +152,14 @@ public class Character : MonoBehaviour
 
     // Other Character in the scene
     [SerializeField] private Character _otherCharacter;
+    public Character otherCharacter {
+        get {
+            return _otherCharacter;
+        }
+        set {
+            _otherCharacter = value;
+        }
+    }
 
 
     [Header("BOT Movement")]
@@ -635,6 +644,8 @@ public class Character : MonoBehaviour
         _probDash = probDash;
         _probBlock = probBlock;
         _probUnblock = probUnblock;
+        
+        _isTraining = true;
     }
 
     // -------------------------------------------------
@@ -797,8 +808,10 @@ public class Character : MonoBehaviour
 
         WriteInFile();
         _startTimer = Time.time;
-
-        StartCoroutine(StartNewMatch());
+        if (!_isTraining)
+        {
+            StartCoroutine(StartNewMatch());
+        }
 
         if (_healthBar != null)
         {
@@ -845,11 +858,11 @@ public class Character : MonoBehaviour
 
     private void FinishGame()
     {
-        SceneManager.LoadScene(2);
+        // SceneManager.LoadScene(2);
     }
 
     public void ChangeEnemyCharacter(Character otherCharacter)
-    {
+    {   
         _otherCharacter = otherCharacter;
     }
 }
