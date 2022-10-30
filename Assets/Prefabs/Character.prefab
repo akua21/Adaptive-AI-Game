@@ -342,8 +342,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _behaviour: 0
   _speed: 200
+  _maxStamina: 100
+  _staminaRecoverRate: 0.1
   _maxHp: 5
   _numberLives: 2
+  _isLeftPlayer: 0
   _iFramesHit: 0.5
   _dashIFrames: 0.1
   _dashStrength: 500
@@ -352,16 +355,7 @@ MonoBehaviour:
   _weapon: {fileID: 4650094125835358760}
   _shield: {fileID: 6012580596188670167}
   _otherCharacter: {fileID: 7199805085518765066}
-  _randIntensityMove: 0
   _studentID: 
-  _probIdleToFollow: 0.07
-  _probIdleToWander: 0.03
-  _probFollowToIdle: 0.1
-  _probWanderToIdle: 0.1
-  _probAttack: 0.02
-  _probDash: 0.02
-  _probBlock: 0.02
-  _probUnblock: 0.01
 --- !u!114 &7727284068055483492
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -487,6 +481,10 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: d3170e54-0a75-4818-b4d8-897c78820fb8
     m_ActionName: CameraControl/ZoomOut[/Keyboard/backspace]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 013f673c-e038-4721-982c-5f77c38afb7a
+    m_ActionName: CameraControl/HideLoading[/Keyboard/h]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: Player 1
   m_DefaultActionMap: Gameplay

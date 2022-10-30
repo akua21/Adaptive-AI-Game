@@ -6,18 +6,50 @@ using UnityEngine.SceneManagement;
 
 public class TitleController : MonoBehaviour
 {
-    [SerializeField] private Button _playButton;
 
-    void Start()
+    public void OnPlayMode0Button()
     {
-		_playButton.onClick.AddListener(OnPlayButton);
-	}
-
-    private void OnPlayButton()
-    {
-        MatchController.CurrentDifficulty = 0;
-        MatchController.UpdateWarmUp(true);
+        MatchController.CurrentGameMode = GameMode.none;
+        MatchController.NumberLives = 1;
         StartCoroutine(ChangeScene(1));
+    }
+
+
+    public void OnPlayMode1Button()
+    {
+        MatchController.CurrentGameMode = GameMode.genetic;
+        MatchController.UpdateWarmUp(true);
+        MatchController.CurrentDifficulty = 0;
+        MatchController.NumberLives = 2;
+        StartCoroutine(ChangeScene(1));
+    }
+
+    public void OnPlayMode2Button()
+    {
+        MatchController.CurrentGameMode = GameMode.classical;
+        MatchController.CurrentDifficulty = 0;
+        MatchController.NumberLives = 4;
+        StartCoroutine(ChangeScene(1));
+    }
+
+    public void OnPlayMode3Button()
+    {
+        MatchController.CurrentGameMode = GameMode.manyEnemies;
+        MatchController.CurrentDifficulty = 0;
+        MatchController.NumberLives = 4;
+        StartCoroutine(ChangeScene(1));
+    }
+
+    public void OnEndEditInput(string playerID)
+    {
+        if (playerID == "Enter your ID...")
+        {
+            MatchController.PlayerID = "";
+        }
+        else
+        {
+            MatchController.PlayerID = playerID;
+        }
     }
 
     private IEnumerator ChangeScene(int sceneNum) 

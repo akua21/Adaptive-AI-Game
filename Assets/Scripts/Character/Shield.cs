@@ -21,6 +21,9 @@ public class Shield : MonoBehaviour
         get {
             return _strength;
         }
+        set {
+            _strength = value;
+        }
     }
 
     private bool _isBlocking;

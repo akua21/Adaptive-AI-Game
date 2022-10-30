@@ -27,6 +27,34 @@ public class Character : MonoBehaviour
             _speed = value;
         }
     }
+    // Character stamina
+    private int _stamina;
+    public int Stamina {
+        get {
+            return _stamina;
+        }
+        set {
+            _stamina = Mathf.Clamp(value, 0, _maxStamina);
+            if (_healthBar != null)
+            {
+                _healthBar.UpdateStaminaBar(_stamina, _maxStamina);
+            }
+        }
+    }
+
+    // Character max stamina
+    [SerializeField] private int _maxStamina;
+
+    // Character stamina recover rate
+    [SerializeField] private float _staminaRecoverRate;
+    public float StaminaRecoverRate {
+        get {
+            return _staminaRecoverRate;
+        }
+        set {
+            _staminaRecoverRate = value;
+        }
+    } 
 
     // Character max health
     [SerializeField] private int _maxHp;
@@ -58,14 +86,13 @@ public class Character : MonoBehaviour
         }
     }
 
-    [SerializeField] private int _numberLives;
     private int _currentLives;
     public int CurrentLives {
         get {
             return _currentLives;
         }
         set {
-            _currentLives = Mathf.Clamp(value, 0, _numberLives);
+            _currentLives = Mathf.Clamp(value, 0, MatchController.NumberLives);
             
             if (_currentLives == 0 && !_isTraining)
             {
@@ -86,6 +113,14 @@ public class Character : MonoBehaviour
     // Dash
     [SerializeField] private float _dashIFrames;
     [SerializeField] private float _dashStrength;
+    public float DashStrength {
+        get {
+            return _dashStrength;
+        }
+        set {
+            _dashStrength = value;
+        }
+    }
     // How much a character in knockbacked when blocking
     [SerializeField] private int _blockKnockback; 
 
@@ -96,13 +131,22 @@ public class Character : MonoBehaviour
 
     // Character Weapon
     [SerializeField] private Weapon _weapon;
+    public Weapon CharacterWeapon {
+        get {
+            return _weapon;
+        }
+    }
 
     // Character Shield
     [SerializeField] private Shield _shield;
-
+    public Shield CharacterShield {
+        get {
+            return _shield;
+        }
+    }
     // Other Character in the scene
     [SerializeField] private Character _otherCharacter;
-    public Character otherCharacter {
+    public Character OtherCharacter {
         get {
             return _otherCharacter;
         }
@@ -175,8 +219,7 @@ public class Character : MonoBehaviour
         }
     }
 
-    [Header("Student ID")]
-    [SerializeField] private string _studentID;
+    private string _studentID;
     private string _fileName;
     public string FileName {
         get {
@@ -185,6 +228,12 @@ public class Character : MonoBehaviour
     }
 
     private float _startTimer;
+    private float _timer;
+    public float Timer {
+        get {
+            return _timer;
+        }
+    }
 
 
     // -------------------------------------------------
@@ -289,10 +338,13 @@ public class Character : MonoBehaviour
     private void Attack ()
     {
         // Can only attack if idle state and weapon is not on cooldown
-        if (_currentState == CharacterState.idle && !_weapon.WeaponCooldown)
+        if (_currentState == CharacterState.idle && !_weapon.WeaponCooldown && Stamina >= 20)
         {
             StateToAttack();
             _weapon.Attack();
+
+            Stamina -= 20;
+
         }
     }
 
@@ -314,7 +366,7 @@ public class Character : MonoBehaviour
 
     private void Block()
     {
-        if (_currentState == CharacterState.idle)
+        if (_currentState == CharacterState.idle && Stamina >= 10)
         {
             StateToBlock();
             _shield.Block();
@@ -340,14 +392,42 @@ public class Character : MonoBehaviour
 
     private void Dash()
     {
-        if (_currentState == CharacterState.idle)
+        if (_currentState == CharacterState.idle && Stamina >= 30)
         {
             StateToDash();
             StartCoroutine(IFrames(_dashIFrames));
 
             GetComponent<Rigidbody2D>().AddForce(transform.up * _dashStrength);
             transform.rotation = Quaternion.Euler(0, 0, _rotation);
+
+            Stamina -= 30;
         }
+    }
+
+    private IEnumerator RecoverStamina()
+    {
+        yield return new WaitForSeconds(_staminaRecoverRate);
+        if (_currentState != CharacterState.block)
+        {
+            Stamina += 1;
+        }
+        
+        StartCoroutine(RecoverStamina());
+    }
+
+    private IEnumerator ConsumeStaminaBlocking()
+    {
+        yield return new WaitForSeconds(0.3f);
+        if (_currentState != CharacterState.block)
+        {
+            Stamina -= 1;
+            if (Stamina == 0)
+            {
+                Unblock();
+            }
+        }
+
+        StartCoroutine(ConsumeStaminaBlocking());
     }
 
     // -------------------------------------------------
@@ -514,7 +594,10 @@ public class Character : MonoBehaviour
     }
 
 
-
+    public bool IsBasicBot(BehaviourEnum behaviour)
+    {
+        return behaviour == BehaviourEnum.bot || behaviour == BehaviourEnum.botGenetic;
+    }
 
 
     private void UpdateGameInputs() 
@@ -536,11 +619,6 @@ public class Character : MonoBehaviour
     // ------------------ Instantiate ------------------
     // -------------------------------------------------
 
-    public void Init(BehaviourEnum behaviour)
-    {
-        _behaviour = behaviour;
-    }
-
     public void Init(
         float probIdleToFollow,
         float probIdleToWander,
@@ -550,11 +628,10 @@ public class Character : MonoBehaviour
         float probDash,
         float probBlock,
         float probUnblock,
-        bool isTraining
+        bool isTraining,
+        BehaviourEnum behaviour
     )
     {
-        _behaviour = BehaviourEnum.bot;
-
         _probIdleToFollow = probIdleToFollow;
         _probIdleToWander = probIdleToWander;
         _probFollowToIdle = probFollowToIdle;
@@ -565,27 +642,46 @@ public class Character : MonoBehaviour
         _probUnblock = probUnblock;
         
         _isTraining = isTraining;
+        _behaviour = behaviour;
     }
 
     // -------------------------------------------------
     // -------------------- Generics -------------------
     // -------------------------------------------------
- 
+    
+    void Awake()
+    {
+        if (_behaviour == BehaviourEnum.player)
+        {
+            MatchController.SetPlayer(this);
+        }
+        else
+        {
+            MatchController.SetBot(this);
+        }
+    }
 
     // Start is called before the first frame update
     void Start()
     {
         HP = MaxHP;
-        CurrentLives = _numberLives;
+        Stamina = _maxStamina;
+        
+        CurrentLives = MatchController.NumberLives;
+        if (_healthBar != null) 
+        {
+            _healthBar.PlaceHearts(_isLeftPlayer, CurrentLives);
+        }
+        
         _animator = GetComponent<Animator>();
         _gameInputs = new GameInputs();
         _currentState = CharacterState.idle;
         _botMovementState = BotMovementState.idle;
 
         _initialPosition = transform.position;
-
-        if (_studentID != "")
+        if (_behaviour == BehaviourEnum.player && MatchController.PlayerID != "")
         {
+            _studentID = MatchController.PlayerID;
             string path = Application.streamingAssetsPath + "/Metrics/";
             _fileName = path + _studentID + ".csv";
             if (!Directory.Exists(path))
@@ -594,22 +690,29 @@ public class Character : MonoBehaviour
             }
             if (!File.Exists(_fileName))
             {
-                File.WriteAllText(_fileName, "time,bot,winner,winnerHP\n");
+                File.WriteAllText(_fileName, "time,bot,winner,winnerHP,probs\n");
             }
         }
 
         _startTimer = Time.time;
-        if (_healthBar != null) 
-        {
-            _healthBar.PlaceHearts(_isLeftPlayer, _numberLives);
-        }
+        
 
-        if (_behaviour == BehaviourEnum.bot && !_isTraining)
+        StartCoroutine(RecoverStamina());
+        StartCoroutine(ConsumeStaminaBlocking());
+
+        if (IsBasicBot(_behaviour) && !_isTraining)
         {
             float[] genes = MatchController.CurrentGenes;
+            
+            BehaviourEnum botBehaviour = BehaviourEnum.bot;
+
             if (genes != null)
             {
-                Init(genes[0], genes[1], genes[2], genes[3], genes[4], genes[5], genes[6], genes[7], false);
+                if (!MatchController.WarmUp)
+                {
+                    botBehaviour = BehaviourEnum.botGenetic;
+                }
+                Init(genes[0], genes[1], genes[2], genes[3], genes[4], genes[5], genes[6], genes[7], false, botBehaviour);
             }
         }
     }
@@ -623,7 +726,7 @@ public class Character : MonoBehaviour
             {
                 UpdateGameInputs();
                 
-                if (_behaviour == BehaviourEnum.bot) 
+                if (IsBasicBot(_behaviour)) 
                 {
                     UpdateMovementBotState();
                     BotActions();
@@ -638,6 +741,10 @@ public class Character : MonoBehaviour
             }
             
             Move();
+        }
+        else {
+            Debug.Log(!_otherCharacter._isDead);
+            Debug.Log(!_isDead);
         }
     }
 
@@ -731,13 +838,24 @@ public class Character : MonoBehaviour
     public void Die()
     {
         _isDead = true;
+        
+        _timer = Time.time - _startTimer;
+        if (_behaviour == BehaviourEnum.player)
+        {
+            MatchController.SetTrainingInfo(this, _timer);
+        }
+        else if (_otherCharacter.Behaviour == BehaviourEnum.player)
+        {
+            MatchController.SetTrainingInfo(_otherCharacter, _timer);
+        }
+
+        _startTimer = Time.time;
 
         if (!_isTraining)
         {
             CurrentLives -= 1;
 
             WriteInFile();
-            _startTimer = Time.time;
             StartCoroutine(StartNewMatch());
 
             if (_healthBar != null)
@@ -751,18 +869,15 @@ public class Character : MonoBehaviour
     private IEnumerator StartNewMatch()
     {
         yield return new WaitForSeconds(0.5f);
-        if (MatchController.WarmUp)
+        // THE PLAYER WON -> THE BOT DIED
+        if (IsBasicBot(_behaviour))
         {
-            // THE PLAYER WON -> THE BOT DIED
-            if (_behaviour == BehaviourEnum.bot)
-            {
-                MatchController.CurrentDifficulty += 1;
-            }
-            // THE BOT WON -> THE PLAYER DIED
-            else if (_behaviour == BehaviourEnum.player)
-            {
-                MatchController.CurrentDifficulty -= 1;
-            }
+            MatchController.CurrentDifficulty += 1;
+        }
+        // THE BOT WON -> THE PLAYER DIED
+        else if (_behaviour == BehaviourEnum.player)
+        {
+            MatchController.CurrentDifficulty -= 1;
         }
 
         transform.position = _initialPosition;
@@ -781,13 +896,30 @@ public class Character : MonoBehaviour
         if (_fileName != null)
         {
             File.AppendAllText(_fileName, 
-                Time.time - _startTimer + "," + _otherCharacter.Behaviour + "," + _otherCharacter.Behaviour + "," + _otherCharacter.HP + "\n"
+                _timer + "," + _otherCharacter.Behaviour + "," + _otherCharacter.Behaviour + "," + _otherCharacter.HP + ","
             );
+
+            File.AppendAllText(_fileName, "[");
+            for (int i = 0; i < MatchController.CurrentGenes.Length-1; i++)
+            {
+                File.AppendAllText(_fileName, MatchController.CurrentGenes[i].ToString() + ",");
+            }
+            File.AppendAllText(_fileName, MatchController.CurrentGenes[MatchController.CurrentGenes.Length-1].ToString() + "]\n");
         }
         else if (_otherCharacter.FileName != null)
         {
             File.AppendAllText(_otherCharacter.FileName,
-                Time.time - _startTimer + "," + _behaviour + "," + _otherCharacter.Behaviour + "," + _otherCharacter.HP + "\n"
+                _timer + "," + _behaviour + "," + _otherCharacter.Behaviour + "," + _otherCharacter.HP + ","
+            );
+
+            File.AppendAllText(_otherCharacter.FileName, "[");
+            for (int i = 0; i < MatchController.CurrentGenes.Length-1; i++)
+            {
+                File.AppendAllText(_otherCharacter.FileName, MatchController.CurrentGenes[i].ToString() + ",");
+            }
+            File.AppendAllText(
+                _otherCharacter.FileName,
+                MatchController.CurrentGenes[MatchController.CurrentGenes.Length-1].ToString() + "]\n"
             );
         }
     }
@@ -796,12 +928,20 @@ public class Character : MonoBehaviour
     {
         _isDead = false;
         HP = MaxHP;
+        Stamina = _maxStamina;
     }
 
     private void FinishGame()
     {
+        if (MatchController.WarmUp && MatchController.CurrentGameMode == GameMode.genetic)
+        {
+            SceneManager.LoadScene(2);
+        }
+        else
+        {
+            SceneManager.LoadScene(3);
+        }
         MatchController.UpdateWarmUp(false);
-        SceneManager.LoadScene(2);
     }
 
     public void ChangeEnemyCharacter(Character otherCharacter)

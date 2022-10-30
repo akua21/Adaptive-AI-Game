@@ -41,7 +41,14 @@ public class GameOverController : MonoBehaviour
     {
         if (_buttonsAvailable)
         {
-            StartCoroutine(ChangeScene(1));
+            if (MatchController.CurrentGameMode == GameMode.genetic)
+            {
+                StartCoroutine(ChangeScene(2));
+            }
+            else
+            {
+                StartCoroutine(ChangeScene(1));
+            }
         }
     }
 

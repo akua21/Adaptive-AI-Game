@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+
 
 public class Individual
 {
@@ -11,19 +13,26 @@ public class Individual
     public Character Bot { get; }
     public int Score { get; set; }
 
-    public Individual(Character character)
+    public Individual(Character character, float[] multiplier, bool isStatic = false)
     {
-        Genes = new float[8] {
-            Random.value * 0.1f,
-            Random.value * 0.1f,
-            Random.value * 0.1f,
-            Random.value * 0.1f,
-            Random.value * 0.1f,
-            Random.value * 0.1f,
-            Random.value * 0.1f,
-            Random.value * 0.1f
+        if (!isStatic)
+        {
+            Genes = new float[8] {
+            Random.value * multiplier[0],
+            Random.value * multiplier[1],
+            Random.value * multiplier[2],
+            Random.value * multiplier[3],
+            Random.value * multiplier[4],
+            Random.value * multiplier[5],
+            Random.value * multiplier[6],
+            Random.value * multiplier[7]
         };
+        }
+        else
+        {
+            Genes = MatchController.CurrentGenes;
 
+        }
         Bot = character;
         Bot.Init(
             Genes[0],
@@ -34,11 +43,51 @@ public class Individual
             Genes[5],
             Genes[6],
             Genes[7],
-            true
+            true,
+            BehaviourEnum.botGenetic
         );
 
     
         Score = 0;
+    }
+
+    public Individual(Character character, bool isStatic = false, float multiplier = 0.1f)
+    {
+        if (!isStatic)
+        {
+            Genes = new float[8] {
+            Random.value * multiplier,
+            Random.value * multiplier,
+            Random.value * multiplier,
+            Random.value * multiplier,
+            Random.value * multiplier,
+            Random.value * multiplier,
+            Random.value * multiplier,
+            Random.value * multiplier
+        };
+        }
+        else
+        {
+            Genes = MatchController.CurrentGenes;
+
+        }
+        Bot = character;
+        Bot.Init(
+            Genes[0],
+            Genes[1],
+            Genes[2],
+            Genes[3],
+            Genes[4],
+            Genes[5],
+            Genes[6],
+            Genes[7],
+            true,
+            BehaviourEnum.botGenetic
+        );
+
+    
+        Score = 0;
+
     }
 
     public Individual(Character character, Individual parent1, Individual parent2)
@@ -65,7 +114,8 @@ public class Individual
             Genes[5],
             Genes[6],
             Genes[7],
-            true
+            true,
+            BehaviourEnum.botGenetic
         );
 
         Score = 0;
@@ -97,6 +147,7 @@ public class GeneticAIController : MonoBehaviour
     // Camera
     [Header("Camera")]
     [SerializeField] private Camera _camera;
+    [SerializeField] private bool _canMoveCamera;
 
     [Header("Canvas")]
     [SerializeField] private GameObject _canvas;
@@ -111,6 +162,7 @@ public class GeneticAIController : MonoBehaviour
     private int _numberFinishedRounds;
     private List<BattleArena> _mapList;
     private List<Individual> _population;
+    private List<Individual> _staticPopulation; // Population from the hardcoded bot. Does not evolve
 
     [Header("Time control")]
     [Range(0, 100)] [SerializeField] float _timeScale;
@@ -127,7 +179,7 @@ public class GeneticAIController : MonoBehaviour
     {
         Vector2 cameraInput = ctx.ReadValue<Vector2>();
 
-        if (ctx.performed && cameraInput != new Vector2(0, 0))
+        if (ctx.performed && cameraInput != new Vector2(0, 0) && _canMoveCamera)
         {
             _canvas.SetActive(false);
             if (Mathf.Abs(cameraInput.x) > Mathf.Abs(cameraInput.y))
@@ -150,7 +202,7 @@ public class GeneticAIController : MonoBehaviour
 
     public void OnZoomIn(InputAction.CallbackContext ctx)
     {
-        if (ctx.performed && _camera.orthographicSize >= 5)
+        if (ctx.performed && _camera.orthographicSize >= 5 && _canMoveCamera)
         {
             _camera.orthographicSize -= 5;
             _canvas.SetActive(false);
@@ -159,7 +211,7 @@ public class GeneticAIController : MonoBehaviour
 
     public void OnZoomOut(InputAction.CallbackContext ctx)
     {
-        if (ctx.performed)
+        if (ctx.performed && _canMoveCamera)
         {
             _camera.orthographicSize += 5;
             _canvas.SetActive(false);
@@ -168,7 +220,7 @@ public class GeneticAIController : MonoBehaviour
 
     public void OnHide(InputAction.CallbackContext ctx)
     {
-        if (ctx.performed)
+        if (ctx.performed && _canMoveCamera)
         {
             _canvas.SetActive(!_canvas.activeSelf);
             if (_canvas.activeSelf)
@@ -202,8 +254,13 @@ public class GeneticAIController : MonoBehaviour
 
                 yield return new WaitForSeconds(_battleTimeLimit);
 
-                Debug.Log("FINISH BATTLE " + j.ToString() + " of ROUND " + i.ToString());
+                // Debug.Log("FINISH BATTLE " + j.ToString() + " of ROUND " + i.ToString());
                 foreach (Individual individual in _population)
+                {
+                    individual.Bot.Die();
+                }
+
+                foreach (Individual individual in _staticPopulation)
                 {
                     individual.Bot.Die();
                 }
@@ -214,9 +271,9 @@ public class GeneticAIController : MonoBehaviour
             NewGeneration();
         }
 
-        Debug.Log("---"); 
-        Debug.Log("FINAL BATTLE");
-        Debug.Log("---");
+        // Debug.Log("---"); 
+        // Debug.Log("FINAL BATTLE");
+        // Debug.Log("---");
 
         for (int j = 0; j < _numberRounds; j++)
         {
@@ -226,8 +283,13 @@ public class GeneticAIController : MonoBehaviour
 
             yield return new WaitForSeconds(_battleTimeLimit);
 
-            Debug.Log("FINISH BATTLE " + j.ToString() + " of the LAST ROUND");
+            // Debug.Log("FINISH BATTLE " + j.ToString() + " of the LAST ROUND");
             foreach (Individual individual in _population)
+            {
+                individual.Bot.Die();
+            }
+
+            foreach (Individual individual in _staticPopulation)
             {
                 individual.Bot.Die();
             }
@@ -236,6 +298,10 @@ public class GeneticAIController : MonoBehaviour
             OnLoadingUpdate();
         }
         DisplayBestBot();
+        // Save the best bot so it plays against the player
+        SaveBestBot();
+        Time.timeScale = 1;
+        SceneManager.LoadScene(1);
     }
 
     private void DisplayBestBot()
@@ -253,10 +319,26 @@ public class GeneticAIController : MonoBehaviour
         Debug.Log(bestIndividual.ToString());
     }
 
+    private void SaveBestBot()
+    {
+       Individual bestIndividual = _population[0];
+
+        foreach (Individual individual in _population)
+        {
+            if (individual.Score > bestIndividual.Score)
+            {
+                bestIndividual = individual;
+            }
+        }
+        MatchController.UpdateGenes(bestIndividual.Genes);
+    }
+
     private void StartUpSimulation()
     {
         _mapList = new List<BattleArena>();
         _population = new List<Individual>();
+
+        _staticPopulation = new List<Individual>();
 
         int numberOfMapsPerRow = (int) Mathf.Ceil(Mathf.Sqrt(_numberBattles));
 
@@ -285,7 +367,7 @@ public class GeneticAIController : MonoBehaviour
 
 
                     // Character 1
-                    string p1Name = "Player 1 - " + arenaCount.ToString();
+                    string p1Name = "Evolving Player - " + arenaCount.ToString();
                     GameObject p1GameObject = Instantiate(
                         _characterPrefab,
                         new Vector3(0, 0, 0),
@@ -296,7 +378,7 @@ public class GeneticAIController : MonoBehaviour
 
 
                     // Character 2
-                    string p2Name = "Player 2 - " + arenaCount.ToString();
+                    string p2Name = "Static Player - " + arenaCount.ToString();
                     GameObject p2GameObject = Instantiate(
                         _characterPrefab,
                         new Vector3(0, 0, 0),
@@ -307,10 +389,10 @@ public class GeneticAIController : MonoBehaviour
 
                     // Add to population
                     Individual individual1 = new Individual(p1);
-                    Individual individual2 = new Individual(p2);
+                    Individual individual2 = new Individual(p2, isStatic: true);
 
                     _population.Add(individual1);
-                    _population.Add(individual2);
+                    _staticPopulation.Add(individual2);
                 }
             } 
         } 
@@ -320,11 +402,17 @@ public class GeneticAIController : MonoBehaviour
     {
         for (int i = 0; i < _numberBattles; i++)
         {   
-            int score = _population[2*i].Bot.HP - _population[2*i+1].Bot.HP;
+            int botResult = _population[i].Bot.HP - _staticPopulation[i].Bot.HP;
+            
+            int playerResult = MatchController.WinnerHP;
 
-            //  +6 so it is always a positive number
-            _population[2*i].Score += score + 6;
-            _population[2*i+1].Score += -score + 6;
+            if (!MatchController.PlayerWon)
+            {
+                playerResult = -playerResult;
+            }
+
+            int score = Mathf.Abs(botResult - playerResult);
+            _population[i].Score += (10 - score);
         }
     }
 
@@ -346,34 +434,25 @@ public class GeneticAIController : MonoBehaviour
     private void ResetPlayers()
     {
         int numberOfMapsPerRow = (int) Mathf.Ceil(Mathf.Sqrt(_numberBattles));
-        int arenaCount = 0;
 
-        for (int i = 0; i < numberOfMapsPerRow; i++)
-        {  
-            for (int j = 0; j < numberOfMapsPerRow; j++)
-            {
-                if (arenaCount < _numberBattles)
-                {
-                    // Reset the characters
-                    _population[2*arenaCount].Bot.ResetCharacter();
-                    _population[2*arenaCount+1].Bot.ResetCharacter();
+        for (int i = 0; i < _numberBattles; i++)
+        {
+            // Reset the characters
+            _population[i].Bot.ResetCharacter();
+            _staticPopulation[i].Bot.ResetCharacter();
 
-                    // Set position
-                    _population[2*arenaCount].Bot.transform.position = _mapList[arenaCount].transform.position + new Vector3(-2, 0, -1);
+            // Set position
+            _population[i].Bot.transform.position = _mapList[i].transform.position + new Vector3(-2, 0, -1);
 
-                    _population[2*arenaCount+1].Bot.transform.position = _mapList[arenaCount].transform.position + new Vector3(+2, 0, -1);
+            _staticPopulation[i].Bot.transform.position = _mapList[i].transform.position + new Vector3(+2, 0, -1);
 
-                    // Put the center point in the correct position
-                    _population[2*arenaCount].Bot.CenterPoint = _mapList[arenaCount].transform.position;
-                    _population[2*arenaCount+1].Bot.CenterPoint = _mapList[arenaCount].transform.position;
+            // Put the center point in the correct position
+            _population[i].Bot.CenterPoint = _mapList[i].transform.position;
+            _staticPopulation[i].Bot.CenterPoint = _mapList[i].transform.position;
 
-                    // Make them enemies
-                    _population[2*arenaCount].Bot.ChangeEnemyCharacter(_population[2*arenaCount+1].Bot);
-                    _population[2*arenaCount+1].Bot.ChangeEnemyCharacter(_population[2*arenaCount].Bot);
-
-                    arenaCount += 1;
-                }
-            }
+            // Make them enemies
+            _population[i].Bot.ChangeEnemyCharacter(_staticPopulation[i].Bot);
+            _staticPopulation[i].Bot.ChangeEnemyCharacter(_population[i].Bot);
         }
     }
 

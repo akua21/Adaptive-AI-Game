@@ -1809,6 +1809,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: HealthBarEnemy
       objectReference: {fileID: 0}
+    - target: {fileID: 4237795902637343710, guid: d05db1c4353c290ea8940606a836c8ab, type: 3}
+      propertyPath: m_FillOrigin
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5997737762519351448, guid: d05db1c4353c290ea8940606a836c8ab, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 22
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d05db1c4353c290ea8940606a836c8ab, type: 3}
 --- !u!1 &2038467795
@@ -2164,7 +2172,7 @@ PrefabInstance:
       objectReference: {fileID: 2064635088}
     - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: _studentID
-      value: 
+      value: s12345678
       objectReference: {fileID: 0}
     - target: {fileID: 7199805085518765066, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
       propertyPath: _dashIFrames

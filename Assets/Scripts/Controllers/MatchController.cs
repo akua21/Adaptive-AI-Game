@@ -2,10 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum BehaviourEnum { player, bot, botInputs };
+public enum BehaviourEnum { player, bot, botInputs, botGenetic };
 public enum CharacterState { idle, attack, block, dash, hitted, recoil };
 public enum BotMovementState { idle, follow, wander };
 
+public enum GameMode { none, genetic, classical, manyEnemies};
 
 public class GameInputs
 {
@@ -56,11 +57,20 @@ public class GameInputs
 public class MatchController : MonoBehaviour
 {
 
-    [SerializeField] public Character Player;
-    [SerializeField] public Character Bot;
+    public static Character Player;
+    public static Character Bot;
+
+    private static int defaultSpeed;
+    private static int defaultAtackStrength;
+    private static int defaultBlockStrength;
+    private static float defaultDashStrength;
+    private static float defaultStaminaRecoverRate;
+
 
     public static int PlayerLives;
     public static int BotLives;
+
+    public static GameMode CurrentGameMode;
 
     private static int _currentDifficulty;
     public static int CurrentDifficulty {
@@ -68,19 +78,20 @@ public class MatchController : MonoBehaviour
             return _currentDifficulty;
         }
         set {
-            Debug.Log("Change");
-            if (value > 1)
+            Debug.Log(CurrentGameMode);
+            switch (CurrentGameMode)
             {
-                _currentDifficulty = 1;
+                case GameMode.genetic:
+                    GeneticDifficultyControl(value);
+                    break;
+                case GameMode.classical:
+                    ClassicalDifficultyControl(value);
+                    break;
+                case GameMode.manyEnemies:
+                    break;
+                default:
+                    break;
             }
-            else if (value < -1)
-            {
-                _currentDifficulty = -1;
-            }
-            else{
-                _currentDifficulty = value;
-            }
-            UpdateGenesFromDifficulty(_currentDifficulty);
         }
     } 
     public static float[] CurrentGenes;
@@ -120,6 +131,64 @@ public class MatchController : MonoBehaviour
 
     public static bool WarmUp;
 
+    public static float MatchTime;
+    public static bool PlayerWon;
+    public static int WinnerHP;
+
+    public static string PlayerID;
+
+    public static int NumberLives;
+
+    public static void SetPlayer(Character player)
+    {
+        Player = player;
+    }
+
+    public static void SetBot(Character bot)
+    {
+        Bot = bot;
+        defaultSpeed = Bot.Speed;
+        defaultAtackStrength = Bot.CharacterWeapon.Strength;
+        defaultBlockStrength = Bot.CharacterShield.Strength;
+        defaultDashStrength = Bot.DashStrength;
+        defaultStaminaRecoverRate = Bot.StaminaRecoverRate;
+    }
+
+    public static void GeneticDifficultyControl(int difficulty)
+    {
+        _currentDifficulty = Mathf.Clamp(difficulty, -1, 1);
+        if (WarmUp)
+        {
+            UpdateGenesFromDifficulty(_currentDifficulty);
+        }
+    }
+
+    public static void ClassicalDifficultyControl(int difficulty)
+    {
+        UpdateGenesFromDifficulty(0);
+
+        Debug.Log(difficulty);
+
+        int speedMultiplier = 10;
+        int attackStrengthMultiplier = 5;
+        int blockStrengthMultiplier = 5;
+        float dashStrengthMultiplier = 10.0f;
+        float staminaRecoverRateMultiplier = -0.05f;
+
+
+        if (Bot != null)
+        {
+            Bot.Speed = defaultSpeed + difficulty * speedMultiplier;
+            Bot.CharacterWeapon.Strength = defaultAtackStrength + difficulty * attackStrengthMultiplier;
+            Bot.CharacterShield.Strength = defaultBlockStrength + difficulty * blockStrengthMultiplier;
+            Bot.DashStrength = defaultDashStrength + difficulty * dashStrengthMultiplier;
+            Bot.StaminaRecoverRate = defaultStaminaRecoverRate + difficulty * staminaRecoverRateMultiplier;
+        }
+
+        _currentDifficulty = Mathf.Clamp(difficulty, -10, 10);;
+
+    }
+
     private static void UpdateGenesFromDifficulty(int difficulty)
     {
         switch (difficulty)
@@ -147,6 +216,24 @@ public class MatchController : MonoBehaviour
     {
         WarmUp = warmUp;
     }
+
+    
+
+    public static void SetTrainingInfo(Character player, float matchTime)
+    {
+        PlayerWon = player.HP != 0;
+        MatchTime = matchTime;
+
+        if (PlayerWon)
+        {
+            WinnerHP = player.HP;
+        }
+        else
+        {
+            WinnerHP = player.OtherCharacter.HP;
+        }
+    }
+
 
     void Update()
     {

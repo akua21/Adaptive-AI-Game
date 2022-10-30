@@ -226,7 +226,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 449479404}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10006}
+  m_LocalPosition: {x: 0, y: 0, z: -10100}
   m_LocalScale: {x: 2, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -674,13 +674,14 @@ MonoBehaviour:
   _mapPrefab: {fileID: 485478500964960462, guid: c23f460097466e83eb1038f6e244f30e, type: 3}
   _characterPrefab: {fileID: 7199805085518765303, guid: c6aafff9a9c4d7768822bc6795a40d41, type: 3}
   _camera: {fileID: 519420031}
+  _canMoveCamera: 0
   _canvas: {fileID: 1855646828}
   _loadingBar: {fileID: 1194328784}
-  _numberGenerations: 10
-  _numberRounds: 5
-  _battleTimeLimit: 5
-  _numberBattles: 4
-  _timeScale: 1
+  _numberGenerations: 5
+  _numberRounds: 4
+  _battleTimeLimit: 60
+  _numberBattles: 32
+  _timeScale: 60
 --- !u!4 &1761350325
 Transform:
   m_ObjectHideFlags: 0

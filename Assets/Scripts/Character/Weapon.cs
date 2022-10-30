@@ -30,6 +30,9 @@ public class Weapon : MonoBehaviour
         get {
             return _strength;
         }
+        set {
+            _strength = value;
+        }
     }
 
     // Animator

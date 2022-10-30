@@ -12,10 +12,10 @@ EditorBuildSettings:
     path: Assets/Scenes/GameScene.unity
     guid: f4cdf18c503e2b08a95466604f8f4ef0
   - enabled: 1
-    path: Assets/Scenes/GameOverScene.unity
-    guid: 30cb6bf65c2654693bd288c4f06b4d50
-  - enabled: 0
     path: Assets/Scenes/GeneticAIScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
+  - enabled: 1
+    path: Assets/Scenes/GameOverScene.unity
+    guid: 30cb6bf65c2654693bd288c4f06b4d50
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 6b06453d4b6fd3b16a576f55688e3cf7, type: 2}
