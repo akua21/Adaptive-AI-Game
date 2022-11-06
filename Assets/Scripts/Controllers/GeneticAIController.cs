@@ -51,7 +51,7 @@ public class Individual
         Score = 0;
     }
 
-    public Individual(Character character, bool isStatic = false, float multiplier = 0.1f)
+    public Individual(Character character, bool isStatic = false, float multiplier = 0.1f, int score = 0)
     {
         if (!isStatic)
         {
@@ -86,7 +86,7 @@ public class Individual
         );
 
     
-        Score = 0;
+        Score = score;
 
     }
 

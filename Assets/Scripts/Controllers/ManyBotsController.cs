@@ -17,10 +17,18 @@ public class ManyBotsController : MonoBehaviour
     [Header("Time control")]
     [Range(0, 10)] [SerializeField] float _timeScale;
 
+    [Header("Health Bars")]
+    [SerializeField] private HealthBar _healthBar1;
+    [SerializeField] private HealthBar _healthBar2;
+
 
     private BattleArena _map;
 
     private List<Individual> _botList;
+
+    private int _fighter1Wins;
+    private int _fighter2Wins;
+
 
     void Awake()
     {
@@ -81,14 +89,17 @@ public class ManyBotsController : MonoBehaviour
         {
             for (int j = i+1; j < _botList.Count; j++)
             {
-                Fight(_botList[i], _botList[j]);       
-                Debug.Log(i.ToString() + "-" + j.ToString());
-                yield return new WaitForSeconds(120);
-                EndFight(_botList[i], _botList[j]);
-                yield return new WaitForSeconds(1);
-            }
+                for (int k = 0; k < 3; k++)
+                {
+                    Fight(_botList[i], _botList[j]);       
+                    Debug.Log(i.ToString() + "-" + j.ToString());
+                    yield return new WaitForSeconds(60f);
+                    EndFight(_botList[i], _botList[j]);
+                    yield return new WaitForSeconds(1);
+                }
 
-            Debug.Log(_botList[i].Score);
+                UpdateScores(_botList[i], _botList[j]);
+            }
         }
 
         foreach (Individual individual in _botList)
@@ -99,6 +110,12 @@ public class ManyBotsController : MonoBehaviour
 
     private void Fight(Individual fighter1, Individual fighter2)
     {
+        _fighter1Wins = 0;
+        _fighter2Wins = 0;
+
+        fighter1.Bot.HealthBarCharacter = _healthBar1;
+        fighter2.Bot.HealthBarCharacter = _healthBar2;
+
         fighter1.Bot.gameObject.SetActive(true);
         fighter2.Bot.gameObject.SetActive(true);
 
@@ -122,13 +139,26 @@ public class ManyBotsController : MonoBehaviour
 
         if (fighter1.Bot.HP == 0)
         {
-            fighter2.Score += 1;
+            _fighter2Wins += 1;
         }
 
         if (fighter2.Bot.HP == 0)
         {
+            _fighter1Wins += 1;
+        }
+    }
+
+    private void UpdateScores(Individual fighter1, Individual fighter2)
+    {
+        if (_fighter1Wins > _fighter2Wins)
+        {
             fighter1.Score += 1;
         }
+        else if (_fighter2Wins > _fighter1Wins)
+        {
+            fighter2.Score += 1;
+        }
+        Debug.Log("new score of " + fighter1.Bot.name + " is " + fighter1.Score.ToString());
     }
 
     private void SaveInfo(Individual individual)

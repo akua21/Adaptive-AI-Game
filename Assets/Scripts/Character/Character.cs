@@ -128,6 +128,14 @@ public class Character : MonoBehaviour
     [Header("HUD")]
     // Character health bar
     [SerializeField] private HealthBar _healthBar;
+    public HealthBar HealthBarCharacter {
+        get {
+            return _healthBar;
+        }
+        set {
+            _healthBar = value;
+        }
+    }
 
     // Character Weapon
     [SerializeField] private Weapon _weapon;
@@ -156,15 +164,16 @@ public class Character : MonoBehaviour
     }
 
     // Bot probs / genes
-    private float _probIdleToFollow;
-    private float _probIdleToWander;
-    private float _probFollowToIdle;
-    private float _probWanderToIdle;
+    [SerializeField] private float _probIdleToFollow;
+    [SerializeField] private float _probIdleToWander;
+    [SerializeField] private float _probFollowToIdle;
+    [SerializeField] private float _probWanderToIdle;
 
-    private float _probAttack;
-    private float _probDash;
-    private float _probBlock;
-    private float _probUnblock;
+    [SerializeField] private float _probAttack;
+    [SerializeField] private float _probDash;
+    [SerializeField] private float _probBlock;
+    [SerializeField] private float _probUnblock;
+
 
     // No SerializeField
     // Character movement and rotation
@@ -338,12 +347,12 @@ public class Character : MonoBehaviour
     private void Attack ()
     {
         // Can only attack if idle state and weapon is not on cooldown
-        if (_currentState == CharacterState.idle && !_weapon.WeaponCooldown && Stamina >= 20)
+        if (_currentState == CharacterState.idle && !_weapon.WeaponCooldown && Stamina >= 15)
         {
             StateToAttack();
             _weapon.Attack();
 
-            Stamina -= 20;
+            Stamina -= 15;
 
         }
     }
@@ -392,7 +401,7 @@ public class Character : MonoBehaviour
 
     private void Dash()
     {
-        if (_currentState == CharacterState.idle && Stamina >= 30)
+        if (_currentState == CharacterState.idle && Stamina >= 20)
         {
             StateToDash();
             StartCoroutine(IFrames(_dashIFrames));
@@ -400,7 +409,7 @@ public class Character : MonoBehaviour
             GetComponent<Rigidbody2D>().AddForce(transform.up * _dashStrength);
             transform.rotation = Quaternion.Euler(0, 0, _rotation);
 
-            Stamina -= 30;
+            Stamina -= 20;
         }
     }
 
@@ -411,16 +420,15 @@ public class Character : MonoBehaviour
         {
             Stamina += 1;
         }
-        
         StartCoroutine(RecoverStamina());
     }
 
     private IEnumerator ConsumeStaminaBlocking()
     {
         yield return new WaitForSeconds(0.3f);
-        if (_currentState != CharacterState.block)
+        if (_currentState == CharacterState.block)
         {
-            Stamina -= 1;
+            Stamina -= 2;
             if (Stamina == 0)
             {
                 Unblock();
@@ -596,7 +604,7 @@ public class Character : MonoBehaviour
 
     public bool IsBasicBot(BehaviourEnum behaviour)
     {
-        return behaviour == BehaviourEnum.bot || behaviour == BehaviourEnum.botGenetic;
+        return behaviour == BehaviourEnum.bot || behaviour == BehaviourEnum.botGenetic || behaviour == BehaviourEnum.botMany;
     }
 
 
@@ -661,6 +669,11 @@ public class Character : MonoBehaviour
         }
     }
 
+    private void OnEnable() {
+        StartCoroutine(RecoverStamina());
+        StartCoroutine(ConsumeStaminaBlocking());
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -697,21 +710,23 @@ public class Character : MonoBehaviour
         _startTimer = Time.time;
         
 
-        StartCoroutine(RecoverStamina());
-        StartCoroutine(ConsumeStaminaBlocking());
-
         if (IsBasicBot(_behaviour) && !_isTraining)
         {
             float[] genes = MatchController.CurrentGenes;
             
             BehaviourEnum botBehaviour = BehaviourEnum.bot;
 
+            if (!MatchController.WarmUp && MatchController.CurrentGameMode == GameMode.genetic)
+            {
+                botBehaviour = BehaviourEnum.botGenetic;
+            }
+            else if (MatchController.CurrentGameMode == GameMode.manyEnemies)
+            {
+                botBehaviour = BehaviourEnum.botMany;
+            }
+
             if (genes != null)
             {
-                if (!MatchController.WarmUp)
-                {
-                    botBehaviour = BehaviourEnum.botGenetic;
-                }
                 Init(genes[0], genes[1], genes[2], genes[3], genes[4], genes[5], genes[6], genes[7], false, botBehaviour);
             }
         }
@@ -720,7 +735,7 @@ public class Character : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {           
-        if (!_otherCharacter._isDead || !_isDead)
+        if (!_otherCharacter._isDead && !_isDead)
         {
             if (_behaviour != BehaviourEnum.player)
             {
@@ -741,10 +756,6 @@ public class Character : MonoBehaviour
             }
             
             Move();
-        }
-        else {
-            Debug.Log(!_otherCharacter._isDead);
-            Debug.Log(!_isDead);
         }
     }
 
@@ -880,6 +891,13 @@ public class Character : MonoBehaviour
             MatchController.CurrentDifficulty -= 1;
         }
 
+        float[] genes = MatchController.CurrentGenes;
+
+        if (genes != null && IsBasicBot(_behaviour))
+        {
+            Init(genes[0], genes[1], genes[2], genes[3], genes[4], genes[5], genes[6], genes[7], false, _behaviour);
+        }
+
         transform.position = _initialPosition;
         _otherCharacter.transform.position = _otherCharacter.InitialPosition;
         GetComponent<Rigidbody2D>().velocity = Vector2.zero;
@@ -929,19 +947,22 @@ public class Character : MonoBehaviour
         _isDead = false;
         HP = MaxHP;
         Stamina = _maxStamina;
+        _currentState = CharacterState.idle;
+        _botMovementState = BotMovementState.idle;
     }
 
     private void FinishGame()
     {
         if (MatchController.WarmUp && MatchController.CurrentGameMode == GameMode.genetic)
         {
+            MatchController.UpdateWarmUp(false);
             SceneManager.LoadScene(2);
         }
         else
         {
             SceneManager.LoadScene(3);
         }
-        MatchController.UpdateWarmUp(false);
+        
     }
 
     public void ChangeEnemyCharacter(Character otherCharacter)

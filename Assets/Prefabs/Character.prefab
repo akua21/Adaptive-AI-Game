@@ -29,7 +29,7 @@ Transform:
   m_GameObject: {fileID: 769026286414602453}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.175, y: 0.201, z: -1}
-  m_LocalScale: {x: 1.1, y: 1.1, z: 1.1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 4100830882568132032}
@@ -290,7 +290,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: bacafdf7b92b844fdbb1984ed0ffd103, type: 3}
+  m_Sprite: {fileID: 21300000, guid: e0994458434e6b4188faf79df40a6870, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -352,7 +352,7 @@ Transform:
   m_GameObject: {fileID: 7199805085518765303}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -1}
-  m_LocalScale: {x: 1.2, y: 1.2, z: 1.2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 108434490923434378}
@@ -386,6 +386,14 @@ MonoBehaviour:
   _weapon: {fileID: 4650094125835358760}
   _shield: {fileID: 6012580596188670167}
   _otherCharacter: {fileID: 7199805085518765066}
+  _probIdleToFollow: 0
+  _probIdleToWander: 0
+  _probFollowToIdle: 0
+  _probWanderToIdle: 0
+  _probAttack: 0
+  _probDash: 0
+  _probBlock: 0
+  _probUnblock: 0
 --- !u!114 &7727284068055483492
 MonoBehaviour:
   m_ObjectHideFlags: 0

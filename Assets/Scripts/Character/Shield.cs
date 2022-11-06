@@ -37,9 +37,10 @@ public class Shield : MonoBehaviour
     }
 
     // Start is called before the first frame update
-    void Start()
+    void OnEnable()
     {
-        _animator = GetComponent<Animator>();  
+        _animator = GetComponent<Animator>();
+        _isBlocking = false;  
     }
 
     public void Block()

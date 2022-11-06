@@ -58,18 +58,18 @@ public class Weapon : MonoBehaviour
         }
     }
 
-    // Start is called before the first frame update
-    void Start()
+    void OnEnable()
     {
         _animator = GetComponent<Animator>();    
         _parentCharacter = transform.parent.gameObject.GetComponent<Character>();
+        IsAttacking = false;
     }
  
     public void Attack()
     {
         _animator.SetTrigger("Attack");
         StartCoroutine(CooldownAttack());
-        _isAttacking = true;
+        _isAttacking = false;
     }
 
     public IEnumerator CooldownAttack()

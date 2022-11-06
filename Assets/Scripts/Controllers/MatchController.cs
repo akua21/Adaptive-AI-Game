@@ -1,8 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
+using System.Linq;
 
-public enum BehaviourEnum { player, bot, botInputs, botGenetic };
+
+
+public enum BehaviourEnum { player, bot, botInputs, botGenetic, botMany };
 public enum CharacterState { idle, attack, block, dash, hitted, recoil };
 public enum BotMovementState { idle, follow, wander };
 
@@ -72,22 +76,44 @@ public class MatchController : MonoBehaviour
 
     public static GameMode CurrentGameMode;
 
+    private static int momentum;
+
     private static int _currentDifficulty;
     public static int CurrentDifficulty {
         get {
             return _currentDifficulty;
         }
         set {
-            Debug.Log(CurrentGameMode);
+            // Control momentum. If win and momentum is positicve, increase momentum. Else, reset momentum
+            if (value > _currentDifficulty)
+            {
+                if (momentum >= 0) {
+                    momentum += 1;
+                } else {
+                    momentum = 0;
+                }
+            }
+            else if(value < _currentDifficulty)
+            {
+                if (momentum <= 0) {
+                    momentum -= 1;
+                } else {
+                    momentum = 0;
+                }
+            }
+
+            Debug.Log("Current difficulty: " + value);
+            Debug.Log("Current momentun: " + momentum);
             switch (CurrentGameMode)
             {
                 case GameMode.genetic:
-                    GeneticDifficultyControl(value);
+                    GeneticDifficultyControl(value + momentum);
                     break;
                 case GameMode.classical:
-                    ClassicalDifficultyControl(value);
+                    ClassicalDifficultyControl(value + momentum);
                     break;
                 case GameMode.manyEnemies:
+                    ManyEnemiesControl(value + momentum);
                     break;
                 default:
                     break;
@@ -173,7 +199,7 @@ public class MatchController : MonoBehaviour
         int attackStrengthMultiplier = 5;
         int blockStrengthMultiplier = 5;
         float dashStrengthMultiplier = 10.0f;
-        float staminaRecoverRateMultiplier = -0.05f;
+        float staminaRecoverRateMultiplier = -0.005f;
 
 
         if (Bot != null)
@@ -185,7 +211,7 @@ public class MatchController : MonoBehaviour
             Bot.StaminaRecoverRate = defaultStaminaRecoverRate + difficulty * staminaRecoverRateMultiplier;
         }
 
-        _currentDifficulty = Mathf.Clamp(difficulty, -10, 10);;
+        _currentDifficulty = Mathf.Clamp(difficulty, -10, 10);
 
     }
 
@@ -217,6 +243,46 @@ public class MatchController : MonoBehaviour
         WarmUp = warmUp;
     }
 
+    public static void ManyEnemiesControl(int difficulty)
+    {
+        List<float[]> orderedGenes = ReadFile();
+
+        _currentDifficulty = difficulty;
+
+        difficulty += orderedGenes.Count / 2;
+        difficulty = Mathf.Clamp(difficulty, 0, orderedGenes.Count - 1);
+
+        CurrentGenes = orderedGenes[difficulty];
+    }
+
+    private static List<float[]> ReadFile()
+    {
+        List<float[]> genesList = new List<float[]>();
+        List<int> scoreList = new List<int>();
+        string path = "Assets/StreamingAssets/ManyBots/manyEnemies.csv";
+        
+        foreach (string line in File.ReadAllLines(path))
+        {
+            string[] splitLine = line.Split(",");
+            if (splitLine.Length == 9)
+            {
+                float[] genes = {
+                    float.Parse(splitLine[0].Remove(0,1)),
+                    float.Parse(splitLine[1]),
+                    float.Parse(splitLine[2]),
+                    float.Parse(splitLine[3]),
+                    float.Parse(splitLine[4]),
+                    float.Parse(splitLine[5]),
+                    float.Parse(splitLine[6]),
+                    float.Parse(splitLine[7].Remove(splitLine[7].Length - 1, 1))
+                };
+                genesList.Add(genes);
+                scoreList.Add(int.Parse(splitLine[8]));
+            }
+        }
+        // Return shorted list
+        return genesList.OrderBy(x => scoreList[genesList.IndexOf(x)]).ToList();
+    }
     
 
     public static void SetTrainingInfo(Character player, float matchTime)
