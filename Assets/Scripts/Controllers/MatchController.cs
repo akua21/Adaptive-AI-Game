@@ -107,13 +107,13 @@ public class MatchController : MonoBehaviour
             switch (CurrentGameMode)
             {
                 case GameMode.genetic:
-                    GeneticDifficultyControl(value + momentum);
+                    GeneticDifficultyControl(value); //To enable momentum (value + momentum)
                     break;
                 case GameMode.classical:
-                    ClassicalDifficultyControl(value + momentum);
+                    ClassicalDifficultyControl(value); //To enable momentum (value + momentum)
                     break;
                 case GameMode.manyEnemies:
-                    ManyEnemiesControl(value + momentum);
+                    ManyEnemiesControl(value); //To enable momentum (value + momentum)
                     break;
                 default:
                     break;
@@ -123,36 +123,36 @@ public class MatchController : MonoBehaviour
     public static float[] CurrentGenes;
 
     public static readonly float[] BOTEASY = new float[8] {
+        0.11f,
         0.07f,
-        0.03f,
-        0.10f,
-        0.10f,
-        0.02f,
-        0.02f,
-        0.02f,
-        0.01f
+        0.14f,
+        0.14f,
+        0.06f,
+        0.06f,
+        0.06f,
+        0.05f
     };
 
     public static readonly float[] BOTMEDIUM = new float[8] {
-        0.09f,
-        0.03f,
-        0.08f,
+        0.13f,
+        0.07f,
         0.12f,
-        0.04f,
-        0.04f,
-        0.04f,
-        0.02f
+        0.16f,
+        0.08f,
+        0.08f,
+        0.08f,
+        0.06f
     };
 
     public static readonly float[] BOTHARD = new float[8] {
-        0.12f,
-        0.02f,
-        0.05f,
-        0.15f,
+        0.16f,
         0.06f,
-        0.06f,
-        0.06f,
-        0.02f
+        0.09f,
+        0.19f,
+        0.10f,
+        0.10f,
+        0.10f,
+        0.06f
     };
 
     public static bool WarmUp;
@@ -192,8 +192,6 @@ public class MatchController : MonoBehaviour
     public static void ClassicalDifficultyControl(int difficulty)
     {
         UpdateGenesFromDifficulty(0);
-
-        Debug.Log(difficulty);
 
         int speedMultiplier = 10;
         int attackStrengthMultiplier = 5;
@@ -306,4 +304,5 @@ public class MatchController : MonoBehaviour
         PlayerLives = Player.CurrentLives;
         BotLives = Bot.CurrentLives;
     }
+
 }

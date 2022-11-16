@@ -4,9 +4,15 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using TMPro;
+
 
 public class Character : MonoBehaviour
 {
+    // Indicates that the countdown is in process
+    public bool timeBlocked;
+
+
     [Header("Behaviour")]
     // Indicates if it can be controlled by the user
     [SerializeField] private BehaviourEnum _behaviour;
@@ -136,6 +142,8 @@ public class Character : MonoBehaviour
             _healthBar = value;
         }
     }
+    [SerializeField] private TextMeshProUGUI _countDownText; 
+
 
     // Character Weapon
     [SerializeField] private Weapon _weapon;
@@ -640,14 +648,14 @@ public class Character : MonoBehaviour
         BehaviourEnum behaviour
     )
     {
-        _probIdleToFollow = probIdleToFollow;
-        _probIdleToWander = probIdleToWander;
-        _probFollowToIdle = probFollowToIdle;
-        _probWanderToIdle = probWanderToIdle;
-        _probAttack = probAttack;
-        _probDash = probDash;
-        _probBlock = probBlock;
-        _probUnblock = probUnblock;
+        _probIdleToFollow = Mathf.Clamp(probIdleToFollow, 0.03f, 1);
+        _probIdleToWander = Mathf.Clamp(probIdleToWander, 0.03f, 1);
+        _probFollowToIdle = Mathf.Clamp(probFollowToIdle, 0.03f, 1);
+        _probWanderToIdle = Mathf.Clamp(probWanderToIdle, 0.03f, 1);
+        _probAttack = Mathf.Clamp(probAttack, 0.03f, 1);
+        _probDash = Mathf.Clamp(probDash, 0.03f, 1);
+        _probBlock = Mathf.Clamp(probBlock, 0.03f, 1);
+        _probUnblock = Mathf.Clamp(probUnblock, 0.03f, 1);
         
         _isTraining = isTraining;
         _behaviour = behaviour;
@@ -730,12 +738,18 @@ public class Character : MonoBehaviour
                 Init(genes[0], genes[1], genes[2], genes[3], genes[4], genes[5], genes[6], genes[7], false, botBehaviour);
             }
         }
+
+        if (_countDownText != null)
+        {
+            StartCoroutine(StartCountDown());
+
+        }
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {           
-        if (!_otherCharacter._isDead && !_isDead)
+        if (!_otherCharacter._isDead && !_isDead && !timeBlocked && !_otherCharacter.timeBlocked)
         {
             if (_behaviour != BehaviourEnum.player)
             {
@@ -810,6 +824,10 @@ public class Character : MonoBehaviour
 
         // Move in the opposite direction with certain strength
         GetComponent<Rigidbody2D>().AddForce(direction * strength);
+
+        // Recover 10 stamina
+        Stamina += 10;
+
     }
 
     public void AttackIsBlocked(Vector3 direction, int strength)
@@ -878,7 +896,7 @@ public class Character : MonoBehaviour
     }
 
     private IEnumerator StartNewMatch()
-    {
+    {        
         yield return new WaitForSeconds(0.5f);
         // THE PLAYER WON -> THE BOT DIED
         if (IsBasicBot(_behaviour))
@@ -949,6 +967,11 @@ public class Character : MonoBehaviour
         Stamina = _maxStamina;
         _currentState = CharacterState.idle;
         _botMovementState = BotMovementState.idle;
+
+        if (_countDownText != null)
+        {
+            StartCoroutine(StartCountDown());
+        }
     }
 
     private void FinishGame()
@@ -968,5 +991,18 @@ public class Character : MonoBehaviour
     public void ChangeEnemyCharacter(Character otherCharacter)
     {   
         _otherCharacter = otherCharacter;
+    }
+
+    public IEnumerator StartCountDown()
+    {
+        timeBlocked = true;
+        _countDownText.text = "3";
+        yield return new WaitForSeconds(1.0f);
+        _countDownText.text = "2";
+        yield return new WaitForSeconds(1.0f);
+        _countDownText.text = "1";
+        yield return new WaitForSeconds(1.0f);
+        _countDownText.text = "";
+        timeBlocked = false;
     }
 }

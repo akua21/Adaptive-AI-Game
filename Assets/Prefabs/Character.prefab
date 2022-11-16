@@ -68,7 +68,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99f00a91469182ac9834d86c03b9f5c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _attackDelay: 0.6
+  _attackDelay: 0.8
   _strength: 100
 --- !u!61 &5455731717360072220
 BoxCollider2D:
@@ -372,6 +372,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44314b82ec4102b61a54b2a5d2e09f81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  timeBlocked: 0
   _behaviour: 0
   _speed: 200
   _maxStamina: 100
@@ -383,6 +384,7 @@ MonoBehaviour:
   _dashStrength: 500
   _blockKnockback: 50
   _healthBar: {fileID: 0}
+  _countDownText: {fileID: 0}
   _weapon: {fileID: 4650094125835358760}
   _shield: {fileID: 6012580596188670167}
   _otherCharacter: {fileID: 7199805085518765066}
